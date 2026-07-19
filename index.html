@@ -438,7 +438,7 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
       </div>
       <div class="search-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input class="search-input" id="searchInput" placeholder="Buscar producto" oninput="renderGrid()">
+        <input class="search-input" id="searchInput" name="storeSearchQuery" type="search" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="Buscar producto" oninput="renderGrid()">
       </div>
       <button class="admin-link" onclick="openTracking()" title="Rastrear mi pedido">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z"/><circle cx="7" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/></svg>
@@ -567,8 +567,8 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
       <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
       <h3>Acceso administrador</h3>
       <p>Solo el dueño de la tienda puede ingresar aquí. Control maestro.</p>
-      <div class="f-group" style="text-align:left"><label>Correo</label><input class="f-input" type="email" id="adminEmail" placeholder="admin@canaan.com" onkeydown="if(event.key==='Enter')document.getElementById('adminPass').focus()"></div>
-      <div class="f-group" style="text-align:left"><label>Contraseña</label><input class="f-input" type="password" id="adminPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="f-group" style="text-align:left"><label>Correo</label><input class="f-input" type="email" id="adminEmail" name="adminEmail" autocomplete="username" placeholder="admin@canaan.com" onkeydown="if(event.key==='Enter')document.getElementById('adminPass').focus()"></div>
+      <div class="f-group" style="text-align:left"><label>Contraseña</label><input class="f-input" type="password" id="adminPass" name="adminPass" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="btn-primary" onclick="doLogin()">Ingresar</button>
       <p class="hint" style="margin-top:12px">El usuario administrador se crea desde Firebase Authentication (consola de Firebase).</p>
     </div>
@@ -955,13 +955,12 @@ function listenSettings(){
 
 function listenProducts(){
   productsCol.onSnapshot(snap=>{
-    console.log('[DEBUG] snapshot de productos recibido. docs=', snap.docs.length, 'ids=', snap.docs.map(d=>d.id), 'fromCache=', snap.metadata.fromCache, 'hasPendingWrites=', snap.metadata.hasPendingWrites);
     products = snap.docs.map(d=>Object.assign({id:d.id}, d.data()));
     productsReady = true;
     if(storeFirstPaintDone) renderGrid();
     else tryStoreFirstPaint();
     if(document.body.classList.contains('in-admin')) renderInventory();
-  }, err=>{ console.error('[DEBUG] error en listener de productos:', err); });
+  }, err=>{ console.error(err); });
 }
 
 /* los pedidos completos (listado) solo los puede leer el admin, según las
@@ -1144,7 +1143,6 @@ function firstImage(p){
 }
 
 function renderGrid(){
-  console.log('[DEBUG] renderGrid() ejecutado. total productos en memoria=', products.length);
   const grid = document.getElementById('productGrid');
   try{
     const q = (document.getElementById('searchInput').value||'').toLowerCase().trim();
@@ -1197,22 +1195,17 @@ function renderGrid(){
    porque el listener vive en el contenedor, no en la tarjeta que pudo haber
    sido reemplazada. */
 document.getElementById('productGrid').addEventListener('click', function(e){
-  console.log('[DEBUG] click en grilla. target=', e.target, 'closest .p-card=', e.target.closest('.p-card'), 'closest [data-add]=', e.target.closest('[data-add]'));
   try{
     const addBtn = e.target.closest('[data-add]');
     if(addBtn){
       e.stopPropagation();
       const id = addBtn.dataset.add;
-      console.log('[DEBUG] boton + clickeado, id=', id, 'variants=', addBtn.dataset.variants);
       if(addBtn.dataset.variants === '1') openProductView(id);
       else addToCart(id);
       return;
     }
     const card = e.target.closest('.p-card');
-    if(card){
-      console.log('[DEBUG] tarjeta clickeada, id=', card.dataset.id, 'producto en memoria=', products.find(x=>x.id===card.dataset.id));
-      openProductView(card.dataset.id);
-    }
+    if(card) openProductView(card.dataset.id);
   }catch(e){
     console.error('product click error:', e);
   }
