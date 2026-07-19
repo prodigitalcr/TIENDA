@@ -955,12 +955,13 @@ function listenSettings(){
 
 function listenProducts(){
   productsCol.onSnapshot(snap=>{
+    console.log('[DEBUG] snapshot de productos recibido. docs=', snap.docs.length, 'ids=', snap.docs.map(d=>d.id), 'fromCache=', snap.metadata.fromCache, 'hasPendingWrites=', snap.metadata.hasPendingWrites);
     products = snap.docs.map(d=>Object.assign({id:d.id}, d.data()));
     productsReady = true;
     if(storeFirstPaintDone) renderGrid();
     else tryStoreFirstPaint();
     if(document.body.classList.contains('in-admin')) renderInventory();
-  }, err=>{ console.error(err); });
+  }, err=>{ console.error('[DEBUG] error en listener de productos:', err); });
 }
 
 /* los pedidos completos (listado) solo los puede leer el admin, según las
@@ -1143,6 +1144,7 @@ function firstImage(p){
 }
 
 function renderGrid(){
+  console.log('[DEBUG] renderGrid() ejecutado. total productos en memoria=', products.length);
   const grid = document.getElementById('productGrid');
   try{
     const q = (document.getElementById('searchInput').value||'').toLowerCase().trim();
@@ -1195,17 +1197,22 @@ function renderGrid(){
    porque el listener vive en el contenedor, no en la tarjeta que pudo haber
    sido reemplazada. */
 document.getElementById('productGrid').addEventListener('click', function(e){
+  console.log('[DEBUG] click en grilla. target=', e.target, 'closest .p-card=', e.target.closest('.p-card'), 'closest [data-add]=', e.target.closest('[data-add]'));
   try{
     const addBtn = e.target.closest('[data-add]');
     if(addBtn){
       e.stopPropagation();
       const id = addBtn.dataset.add;
+      console.log('[DEBUG] boton + clickeado, id=', id, 'variants=', addBtn.dataset.variants);
       if(addBtn.dataset.variants === '1') openProductView(id);
       else addToCart(id);
       return;
     }
     const card = e.target.closest('.p-card');
-    if(card) openProductView(card.dataset.id);
+    if(card){
+      console.log('[DEBUG] tarjeta clickeada, id=', card.dataset.id, 'producto en memoria=', products.find(x=>x.id===card.dataset.id));
+      openProductView(card.dataset.id);
+    }
   }catch(e){
     console.error('product click error:', e);
   }
