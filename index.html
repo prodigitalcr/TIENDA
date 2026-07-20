@@ -8,6 +8,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!-- jsPDF (generación de reportes PDF desde el panel de administrador) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBOb3nCj4YS7Dmi6zic_yB3KCS-UHVVgpc",
@@ -33,7 +36,7 @@
   --bg:#F4F6F8; --card:#FFFFFF; --ink:#17202A; --muted:#6B7280;
   --line:#E5E7EB; --danger:#DC2626; --danger-soft:#FDE8E8;
   --blue:#1D4ED8; --blue-soft:#E3EDFF;
-  --radius:16px; --shadow:0 6px 24px rgba(16,24,40,.08);
+  --radius:18px; --shadow:0 10px 28px rgba(16,24,40,.10);
   --font:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -46,7 +49,7 @@ img{max-width:100%}
 ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:8px}
 
 /* ============ TIENDA (CLIENTES) ============ */
-.store-header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line)}
+.store-header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line)}
 .store-header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:12px 20px}
 .brand{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:800;letter-spacing:.5px}
 .brand .logo{width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2E9E5B,#0F5A30);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -78,10 +81,10 @@ img{max-width:100%}
 .sort-select{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:600;color:var(--ink);outline:none}
 
 .product-grid{max-width:1280px;margin:0 auto;padding:14px 20px 90px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
-.p-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;transition:.2s;position:relative;cursor:pointer}
-.p-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.p-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;transition:transform .22s ease,box-shadow .22s ease;position:relative;cursor:pointer}
+.p-card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
 .p-card img{-webkit-user-drag:none;user-drag:none;user-select:none;-webkit-user-select:none}
-.p-img{aspect-ratio:1.15;display:flex;align-items:center;justify-content:center;position:relative}
+.p-img{aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;background:#F7F8FA}
 .p-img svg{width:72px;height:72px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.18))}
 .p-stock{position:absolute;top:10px;left:10px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.92)}
 .p-stock.ok{color:var(--green)}
@@ -153,7 +156,7 @@ img{max-width:100%}
 .modal.show{display:flex}
 .modal-bg{position:absolute;inset:0;background:rgba(15,23,42,.5)}
 .modal-card{position:relative;background:#fff;border-radius:20px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.25);animation:pop .25s cubic-bezier(.34,1.4,.64,1)}
-.modal-card.wide{max-width:680px}
+.modal-card.wide{max-width:720px}
 .modal-card.pm-modal{max-width:1060px}
 .pm-body{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;align-items:start}
 .pm-col{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -270,8 +273,12 @@ textarea.f-input{resize:vertical;min-height:70px}
 .media-item .ph svg{width:30px;height:30px}
 
 /* ============ GALERÍA / DETALLE PRODUCTO (CLIENTE) ============ */
-.pv-media{border-radius:16px;overflow:hidden;aspect-ratio:1.4;background:#F3F4F6;display:flex;align-items:center;justify-content:center}
-.pv-media img,.pv-media video{width:100%;height:100%;object-fit:cover}
+.pv-media{border-radius:16px;overflow:hidden;aspect-ratio:1;background:#F3F4F6;display:flex;align-items:center;justify-content:center;transition:aspect-ratio .15s}
+.pv-media img{width:100%;height:100%;object-fit:cover;display:block}
+.pv-media video,.pv-media iframe{width:100%;height:100%;object-fit:contain;display:block;border:0}
+/* video / YouTube: formato vertical tipo historia (9:16), centrado y con fondo negro */
+.pv-media.is-story{aspect-ratio:9/16;max-width:380px;margin:0 auto;background:#111}
+.pv-media.is-story video{object-fit:cover}
 .pv-thumbs{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:2px}
 .pv-thumbs .th{width:64px;height:64px;flex-shrink:0;border-radius:10px;overflow:hidden;border:2px solid transparent;cursor:pointer;background:#F3F4F6}
 .pv-thumbs .th.active{border-color:var(--green)}
@@ -351,6 +358,9 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
 .btn-dark{padding:11px 18px;border-radius:12px;background:#111827;color:#fff;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:8px;transition:.15s}
 .btn-dark:hover{background:#000}
 .btn-dark svg{width:16px;height:16px}
+.btn-export{padding:11px 18px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:8px;transition:.15s;white-space:nowrap;flex-shrink:0}
+.btn-export:hover{border-color:var(--green);color:var(--green-dark);background:var(--green-soft)}
+.btn-export svg{width:16px;height:16px}
 .inv-table-adm{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;font-size:13.5px}
 .inv-table-adm th{background:#F9FAFB;text-align:left;padding:12px 14px;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--line)}
 .inv-table-adm td{padding:11px 14px;border-bottom:1px solid #F1F5F9;vertical-align:middle}
@@ -417,7 +427,7 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
   .adm-brand .t,.adm-link span,.adm-nav .sec{display:none}
   .adm-link{justify-content:center;padding:12px}
   .adm-main{padding:16px}
-  .product-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:12px 12px 90px}
+  .product-grid{grid-template-columns:repeat(2,1fr);gap:12px;padding:12px 12px 100px}
   .p-desc{display:none}
   .search-wrap{order:3;max-width:100%;flex-basis:100%}
   .store-header-inner{flex-wrap:wrap}
@@ -613,6 +623,9 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
     <section class="panel active" id="panel-stats">
       <div class="adm-title">Estadísticas</div>
       <div class="adm-sub">Resumen de ventas registradas en la tienda web.</div>
+      <div class="adm-toolbar" style="justify-content:flex-end">
+        <button class="btn-export" onclick="exportStatsPDF()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9.5 14.5 12 17l2.5-2.5"/></svg>Exportar PDF</button>
+      </div>
       <div class="stat-cards">
         <div class="stat-card hl"><div class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Total ventas</div><div class="val" id="stSales">₡0</div><div class="sub" id="stSalesSub">0 pedidos</div></div>
         <div class="stat-card"><div class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Pendientes</div><div class="val" id="stPend">0</div><div class="sub">por confirmar comprobante</div></div>
@@ -632,6 +645,7 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
           <input class="search-input" id="invSearch" placeholder="Buscar por nombre" oninput="renderInventory()">
         </div>
+        <button class="btn-export" onclick="exportInventoryPDF()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9.5 14.5 12 17l2.5-2.5"/></svg>Exportar PDF</button>
         <button class="btn-dark" onclick="openProductModal()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
           Crear producto
@@ -657,6 +671,7 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
           <option value="entregado">Entregados</option>
           <option value="cancelado">Cancelados</option>
         </select>
+        <button class="btn-export" style="margin-left:auto" onclick="exportOrdersPDF()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9.5 14.5 12 17l2.5-2.5"/></svg>Exportar PDF</button>
       </div>
       <div style="overflow-x:auto">
         <table class="inv-table-adm">
@@ -694,6 +709,9 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
         <div class="f-row">
           <div class="f-group"><label>Horario</label><input class="f-input" id="sHours" placeholder="Ej: L-S 6:00 a.m. - 5:00 p.m."></div>
           <div class="f-group"><label>Categorías (separadas por coma)</label><input class="f-input" id="sCats" placeholder="Plantas, Productos, Servicios"></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin:-6px 0 14px">
+          <button type="button" class="btn-export" onclick="exportCategoriesPDF()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9.5 14.5 12 17l2.5-2.5"/></svg>Exportar categorías (PDF)</button>
         </div>
         <div class="f-group"><label>Información de envíos</label><input class="f-input" id="sShip" placeholder="Ej: Hacemos envíos por Uber Flash, San José CR"></div>
       </div>
@@ -1280,7 +1298,11 @@ function selectPvVariant(vid){
 /* Si la opción elegida (ej. tamaño) tiene su propia foto, se muestra esa foto;
    si no, se vuelve a la portada general del producto. */
 function applyVariantImage(v){
-  if(v && v.image){ document.getElementById('pvMedia').innerHTML = '<img src="' + v.image + '" alt="">'; }
+  if(v && v.image){
+    const box = document.getElementById('pvMedia');
+    box.classList.remove('is-story');
+    box.innerHTML = '<img src="' + v.image + '" alt="">';
+  }
   else if(pvCurrentMedia.length){ pvShowMedia(pvCurrentMedia, 0); }
 }
 function pvUnit(p){
@@ -1333,9 +1355,11 @@ let pvCurrentMedia = [];
 function pvShowMedia(media, i){
   const m = media[i];
   const box = document.getElementById('pvMedia');
+  /* el video y el YouTube se muestran en formato vertical tipo historia (9:16) */
+  box.classList.toggle('is-story', m.type==='video' || m.type==='youtube');
   if(m.type==='image') box.innerHTML = '<img src="' + m.url + '" alt="">';
-  else if(m.type==='video') box.innerHTML = '<video src="' + esc(m.url) + '" controls playsinline></video>';
-  else if(m.type==='youtube') box.innerHTML = '<iframe src="' + esc(m.url) + '" style="width:100%;height:100%;border:0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+  else if(m.type==='video') box.innerHTML = '<video src="' + esc(m.url) + '" controls playsinline muted autoplay loop></video>';
+  else if(m.type==='youtube') box.innerHTML = '<iframe src="' + esc(m.url) + '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
   else box.innerHTML = svgIcon(m.url, 120);
 }
 function pvSelectThumb(i){
@@ -1693,6 +1717,178 @@ function drawChart(){
 }
 window.addEventListener('resize', ()=>{ if(document.body.classList.contains('in-admin')) drawChart(); });
 
+/* ---------- reportes en PDF (jsPDF + autoTable) ---------- */
+/* Los fonts base de jsPDF no incluyen el símbolo ₡ ni el espacio fino que usa fmt(),
+   así que para los PDF se usa un formateo de moneda aparte, 100% compatible. */
+function fmtPdf(n){ return 'CRC ' + Math.round(n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function displayPricePdf(p){
+  if(p.hasVariants){
+    const av = activeVariants(p);
+    if(!av.length) return fmtPdf(0);
+    const min = Math.min(...av.map(v=>v.price));
+    const max = Math.max(...av.map(v=>v.price));
+    return min===max ? fmtPdf(min) : ('Desde ' + fmtPdf(min));
+  }
+  return fmtPdf(p.price);
+}
+function todayFileStamp(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function pdfNewDoc(subtitle){
+  const doc = new window.jspdf.jsPDF({ unit:'pt', format:'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  doc.setFillColor(27,122,67);
+  doc.rect(0,0,pageW,72,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(16);
+  doc.text(settings.storeName || 'CANAAN', 40, 32);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(11);
+  doc.text(subtitle, 40, 50);
+  doc.setFontSize(9);
+  doc.text(new Date().toLocaleString('es-CR'), pageW-40, 50, { align:'right' });
+  doc.setTextColor(17,32,42);
+  return doc;
+}
+function pdfFooter(doc){
+  const pages = doc.internal.getNumberOfPages();
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  for(let i=1;i<=pages;i++){
+    doc.setPage(i);
+    doc.setFontSize(8.5);
+    doc.setTextColor(150,150,150);
+    doc.text((settings.storeName||'CANAAN') + ' - reporte generado desde el panel de administrador', 40, pageH-20);
+    doc.text('Pagina ' + i + ' de ' + pages, pageW-40, pageH-20, { align:'right' });
+  }
+}
+function pdfReady(){
+  if(window.jspdf && window.jspdf.jsPDF) return true;
+  toast('No se pudo cargar el generador de PDF. Revisá tu conexión e intentá de nuevo.', 'err');
+  return false;
+}
+function exportStatsPDF(){
+  if(!pdfReady()) return;
+  const doc = pdfNewDoc('Reporte de estadisticas');
+  const act = activeOrders();
+  const total = act.reduce((s,o)=>s+o.total,0);
+  doc.autoTable({
+    startY: 92,
+    head: [['Resumen','Valor']],
+    body: [
+      ['Total de ventas', fmtPdf(total)],
+      ['Pedidos activos', String(act.length)],
+      ['Pendientes por confirmar', String(orders.filter(o=>o.status==='recibido').length)],
+      ['Entregados', String(orders.filter(o=>o.status==='entregado').length)],
+      ['Cancelados', String(orders.filter(o=>o.status==='cancelado').length)],
+      ['Ticket promedio', act.length ? fmtPdf(total/act.length) : fmtPdf(0)]
+    ],
+    theme:'grid', headStyles:{ fillColor:[27,122,67] }, styles:{ fontSize:10, cellPadding:6 }
+  });
+  const days = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    days.push({ key:d.toISOString().slice(0,10), lbl:d.toLocaleDateString('es-CR',{weekday:'long', day:'2-digit', month:'2-digit'}), total:0 });
+  }
+  act.forEach(o=>{
+    const k = o.date.slice(0,10);
+    const d = days.find(x=>x.key===k);
+    if(d) d.total += o.total;
+  });
+  doc.autoTable({
+    startY: doc.lastAutoTable.finalY + 24,
+    head: [['Ventas de los ultimos 7 dias','Total']],
+    body: days.map(d=>[d.lbl, fmtPdf(d.total)]),
+    theme:'grid', headStyles:{ fillColor:[27,122,67] }, styles:{ fontSize:10, cellPadding:6 }
+  });
+  const agg = {};
+  act.forEach(o => o.items.forEach(it => {
+    if(!agg[it.name]) agg[it.name] = {qty:0, amt:0};
+    agg[it.name].qty += it.qty; agg[it.name].amt += it.qty*it.price;
+  }));
+  const top = Object.entries(agg).sort((a,b)=>b[1].qty-a[1].qty).slice(0,10);
+  doc.autoTable({
+    startY: doc.lastAutoTable.finalY + 24,
+    head: [['Producto mas vendido','Unidades','Vendido']],
+    body: top.length ? top.map(([n,v])=>[n, String(v.qty), fmtPdf(v.amt)]) : [['Aun no hay ventas registradas','','']],
+    theme:'grid', headStyles:{ fillColor:[27,122,67] }, styles:{ fontSize:10, cellPadding:6 }
+  });
+  pdfFooter(doc);
+  doc.save('canaan-estadisticas-' + todayFileStamp() + '.pdf');
+  toast('Reporte de estadisticas descargado', 'ok');
+}
+function exportInventoryPDF(){
+  if(!pdfReady()) return;
+  const doc = pdfNewDoc('Reporte de inventario');
+  const body = products.map(p=>{
+    const st = stockInfo(p);
+    const totalStock = p.hasVariants ? activeVariants(p).reduce((s,v)=>s+(v.stock||0),0) : p.stock;
+    return [p.name, p.cat, displayPricePdf(p), p.unlimited ? 'Servicio' : String(totalStock), st.label];
+  });
+  doc.autoTable({
+    startY: 92,
+    head: [['Producto','Categoria','Precio','Stock','Estado']],
+    body: body.length ? body : [['Sin productos registrados','','','','']],
+    theme:'grid', headStyles:{ fillColor:[27,122,67] }, styles:{ fontSize:9.5, cellPadding:5 },
+    columnStyles:{ 2:{ halign:'right' }, 3:{ halign:'right' } }
+  });
+  doc.setFontSize(9.5);
+  doc.setTextColor(107,114,128);
+  doc.text(products.length + ' referencias - ' + products.filter(p=>stockInfo(p).cls!=='ok').length + ' con stock bajo o agotado', 40, doc.lastAutoTable.finalY + 20);
+  pdfFooter(doc);
+  doc.save('canaan-inventario-' + todayFileStamp() + '.pdf');
+  toast('Reporte de inventario descargado', 'ok');
+}
+function exportOrdersPDF(){
+  if(!pdfReady()) return;
+  const f = document.getElementById('orderFilter').value;
+  const list = orders.filter(o=>!f || o.status===f);
+  const doc = pdfNewDoc('Reporte de pedidos' + (f ? ' - ' + (STATUS[f]?STATUS[f].lbl:f) : ''));
+  const body = list.map(o=>{
+    const d = new Date(o.date);
+    const itemsTxt = o.items.map(it=>it.qty+'x '+it.name).join(', ');
+    const st = STATUS[o.status]||STATUS.recibido;
+    return [o.number, d.toLocaleDateString('es-CR'), o.customer.name, o.customer.phone, itemsTxt, fmtPdf(o.total), st.lbl];
+  });
+  doc.autoTable({
+    startY: 92,
+    head: [['Factura','Fecha','Cliente','Telefono','Detalle','Total','Estado']],
+    body: body.length ? body : [['Sin pedidos registrados','','','','','','']],
+    theme:'grid', headStyles:{ fillColor:[27,122,67] }, styles:{ fontSize:8.5, cellPadding:5 },
+    columnStyles:{ 4:{ cellWidth:150 }, 5:{ halign:'right' } }
+  });
+  pdfFooter(doc);
+  doc.save('canaan-pedidos-' + todayFileStamp() + '.pdf');
+  toast('Reporte de pedidos descargado', 'ok');
+}
+function exportCategoriesPDF(){
+  if(!pdfReady()) return;
+  const doc = pdfNewDoc('Reporte de categorias');
+  const cats = settings.categories||[];
+  const body = cats.map(cat=>{
+    const list = products.filter(p=>p.cat===cat);
+    const units = list.reduce((s,p)=> s + (p.unlimited ? 0 : (p.hasVariants ? activeVariants(p).reduce((a,v)=>a+(v.stock||0),0) : (p.stock||0))), 0);
+    const value = list.reduce((s,p)=>{
+      if(p.unlimited) return s;
+      if(p.hasVariants) return s + activeVariants(p).reduce((a,v)=>a+(v.price*(v.stock||0)),0);
+      return s + (p.price*(p.stock||0));
+    }, 0);
+    return [cat, String(list.length), String(units), fmtPdf(value)];
+  });
+  doc.autoTable({
+    startY: 92,
+    head: [['Categoria','Productos','Unidades en stock','Valor de inventario']],
+    body: body.length ? body : [['Sin categorias configuradas','','','']],
+    theme:'grid', headStyles:{ fillColor:[27,122,67] }, styles:{ fontSize:10, cellPadding:6 },
+    columnStyles:{ 1:{ halign:'right' }, 2:{ halign:'right' }, 3:{ halign:'right' } }
+  });
+  pdfFooter(doc);
+  doc.save('canaan-categorias-' + todayFileStamp() + '.pdf');
+  toast('Reporte de categorias descargado', 'ok');
+}
+
 /* ---------- inventario ---------- */
 function renderInventory(){
   const q = (document.getElementById('invSearch').value||'').toLowerCase().trim();
@@ -1736,7 +1932,7 @@ function onImageFileChosen(input){
   const file = input.files && input.files[0];
   const slot = imgFileSlot;
   if(!file || slot===null){ input.value=''; return; }
-  compressImageFile(file, 1000, 0.72).then(dataUrl => {
+  compressImageFile(file, 1280, 0.82).then(dataUrl => {
     pmImages[slot] = dataUrl;
     renderImageGrid();
   }).catch(()=> toast('No se pudo procesar esa foto', 'err'));
