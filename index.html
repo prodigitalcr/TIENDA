@@ -897,11 +897,13 @@ body.in-admin #storeView,body.in-admin .wa-float,body.in-admin .ai-float,body.in
               <option value="local">Motor propio (reglas y skills, sin costo)</option>
               <option value="anthropic">Anthropic Claude</option>
               <option value="openai">OpenAI GPT</option>
+              <option value="openrouter">OpenRouter (Claude, GPT, Llama y más)</option>
             </select>
           </div>
-          <div class="f-group"><label>Modelo</label><input class="f-input" id="aiModel" placeholder="Ej: claude-sonnet-4-6 / gpt-4o-mini"></div>
+          <div class="f-group"><label>Modelo</label><input class="f-input" id="aiModel" placeholder="Ej: claude-sonnet-4-6 / gpt-4o-mini / anthropic/claude-3.5-sonnet"></div>
         </div>
         <div class="f-group"><label>API key</label><input class="f-input" type="password" id="aiApiKey" placeholder="Pegá tu API key aquí" autocomplete="off"></div>
+        <p class="hint" id="aiProviderHint" style="margin:-4px 0 8px"></p>
         <div class="f-group"><label>Instrucciones generales (system prompt)</label><textarea class="f-input" id="aiSystemPrompt" placeholder="Ej: Sos amable, cercano, siempre en español, y priorizás recomendar productos con descuento activo." style="min-height:80px"></textarea><p class="hint">Se envía al modelo junto con tu catálogo de productos en cada conversación.</p></div>
       </div>
 
@@ -2222,7 +2224,7 @@ function aiMatchSkill(lower){
 let aiConvHistory = [];
 function aiRespond(rawText){
   const ai = settings.aiAssistant || {};
-  if((ai.provider === 'anthropic' || ai.provider === 'openai') && ai.apiKey){
+  if((ai.provider === 'anthropic' || ai.provider === 'openai' || ai.provider === 'openrouter') && ai.apiKey){
     aiRespondViaAPI(rawText);
   } else {
     aiRespondLocal(rawText);
@@ -2296,6 +2298,24 @@ async function aiRespondViaAPI(rawText){
       });
       const json = await res.json();
       if(json.error) throw new Error(json.error.message || 'Error de la API de OpenAI');
+      replyText = ((json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) || '').trim();
+    } else if(ai.provider === 'openrouter'){
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization':'Bearer ' + ai.apiKey,
+          'HTTP-Referer': (typeof location!=='undefined' ? location.href : ''),
+          'X-Title': settings.storeName || 'Tienda online'
+        },
+        body: JSON.stringify({
+          model: ai.model || 'openai/gpt-4o-mini',
+          max_tokens: 500,
+          messages: [{ role:'system', content: sys }].concat(aiConvHistory.slice(-10))
+        })
+      });
+      const json = await res.json();
+      if(json.error) throw new Error((json.error.message || 'Error de la API de OpenRouter') + (json.error.code ? (' (' + json.error.code + ')') : ''));
       replyText = ((json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) || '').trim();
     } else {
       throw new Error('Proveedor de IA no configurado');
@@ -3382,6 +3402,7 @@ function loadAiForm(){
   document.getElementById('aiName').value = ai.name || '';
   document.getElementById('aiGreeting').value = ai.greeting || '';
   document.getElementById('aiProvider').value = ai.provider || 'local';
+  onAiProviderChange();
   document.getElementById('aiModel').value = ai.model || '';
   document.getElementById('aiApiKey').value = ai.apiKey || '';
   document.getElementById('aiSystemPrompt').value = ai.systemPrompt || '';
@@ -3390,7 +3411,18 @@ function loadAiForm(){
   renderAiSkillsPanel();
   renderAiTrainingPanel();
 }
-function onAiProviderChange(){ /* reservado por si luego querés mostrar/ocultar campos según el proveedor */ }
+function onAiProviderChange(){
+  const provider = document.getElementById('aiProvider').value;
+  const hint = document.getElementById('aiProviderHint');
+  if(!hint) return;
+  const HINTS = {
+    local: 'No necesita API key. Usa el motor de reglas y skills de la tienda.',
+    anthropic: 'Conseguí tu key en console.anthropic.com → API Keys. Ejemplo de modelo: claude-sonnet-4-6.',
+    openai: 'Conseguí tu key en platform.openai.com → API keys. Ejemplo de modelo: gpt-4o-mini.',
+    openrouter: 'Conseguí tu key en openrouter.ai/keys. El modelo va con el formato "proveedor/modelo", ej: anthropic/claude-3.5-sonnet, openai/gpt-4o-mini, meta-llama/llama-3.1-8b-instruct.'
+  };
+  hint.textContent = HINTS[provider] || '';
+}
 let pmAiTrainingPrompts = [];
 function addAiTrainingPrompt(){
   pmAiTrainingPrompts.push({ id: rid(), text:'' });
