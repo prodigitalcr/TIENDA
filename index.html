@@ -429,6 +429,9 @@ textarea.f-input{resize:vertical;min-height:70px}
 .ai-float{position:fixed;bottom:90px;right:22px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#4C1D95);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(124,58,237,.45);z-index:60;transition:.2s;color:#fff}
 .ai-float:hover{transform:scale(1.08)}
 .ai-float svg{width:26px;height:26px}
+#aiFloatIcon{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+#aiFloatIcon img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.ai-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .ai-float .pulse{position:absolute;inset:0;border-radius:50%;background:#7C3AED;opacity:.5;animation:aiPulse 2.2s infinite}
 @keyframes aiPulse{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.5);opacity:0}}
 .ai-panel{position:fixed;bottom:0;right:0;width:400px;max-width:96vw;height:min(640px,88vh);background:#fff;z-index:95;border-radius:18px 0 0 0;box-shadow:-6px -6px 30px rgba(0,0,0,.18);display:flex;flex-direction:column;transform:translateY(110%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
@@ -662,12 +665,12 @@ body.in-admin #storeView,body.in-admin .wa-float,body.in-admin .ai-float,body.in
 
 <button class="ai-float" id="aiFloatBtn" title="Asistente de compras IA" onclick="toggleAiPanel(true)">
   <span class="pulse"></span>
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v3M12 19v3M4.2 4.2l2.2 2.2M17.6 17.6l2.2 2.2M2 12h3M19 12h3M4.2 19.8l2.2-2.2M17.6 6.4l2.2-2.2"/><circle cx="12" cy="12" r="4"/></svg>
+  <span id="aiFloatIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v3M12 19v3M4.2 4.2l2.2 2.2M17.6 17.6l2.2 2.2M2 12h3M19 12h3M4.2 19.8l2.2-2.2M17.6 6.4l2.2-2.2"/><circle cx="12" cy="12" r="4"/></svg></span>
 </button>
 
 <div class="ai-panel" id="aiPanel">
   <div class="ai-head">
-    <div class="ai-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.2 2.2M17.6 17.6l2.2 2.2M2 12h3M19 12h3M4.2 19.8l2.2-2.2M17.6 6.4l2.2-2.2"/></svg></div>
+    <div class="ai-avatar" id="aiAvatarIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.2 2.2M17.6 17.6l2.2 2.2M2 12h3M19 12h3M4.2 19.8l2.2-2.2M17.6 6.4l2.2-2.2"/></svg></div>
     <div class="t"><b id="aiHeadName">Asistente de compras</b><span>En línea</span></div>
     <button class="close-x" onclick="toggleAiPanel(false)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
@@ -886,8 +889,34 @@ body.in-admin #storeView,body.in-admin .wa-float,body.in-admin .ai-float,body.in
       </div>
 
       <div class="settings-card">
+        <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M8 10v4M16 10v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>Conexión con IA externa (opcional)</h4>
+        <div class="desc">Por defecto el asistente usa el motor de reglas propio de la tienda. Si querés respuestas generadas por un modelo real, elegí un proveedor e ingresá tu API key. La key queda guardada en tu base de datos y viaja desde el navegador del cliente, así que usá una key con permisos limitados y controlá el gasto desde el panel del proveedor.</div>
+        <div class="f-row">
+          <div class="f-group"><label>Proveedor de IA</label>
+            <select class="f-input" id="aiProvider" onchange="onAiProviderChange()">
+              <option value="local">Motor propio (reglas y skills, sin costo)</option>
+              <option value="anthropic">Anthropic Claude</option>
+              <option value="openai">OpenAI GPT</option>
+            </select>
+          </div>
+          <div class="f-group"><label>Modelo</label><input class="f-input" id="aiModel" placeholder="Ej: claude-sonnet-4-6 / gpt-4o-mini"></div>
+        </div>
+        <div class="f-group"><label>API key</label><input class="f-input" type="password" id="aiApiKey" placeholder="Pegá tu API key aquí" autocomplete="off"></div>
+        <div class="f-group"><label>Instrucciones generales (system prompt)</label><textarea class="f-input" id="aiSystemPrompt" placeholder="Ej: Sos amable, cercano, siempre en español, y priorizás recomendar productos con descuento activo." style="min-height:80px"></textarea><p class="hint">Se envía al modelo junto con tu catálogo de productos en cada conversación.</p></div>
+      </div>
+
+      <div class="settings-card">
+        <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Prompts de entrenamiento</h4>
+        <div class="desc">Agregá varios prompts (ejemplos, instrucciones o casos frecuentes) para entrenar al asistente y afinar cómo responde. Se usan solo cuando el proveedor es Anthropic u OpenAI; con el motor propio, usá la sección de Skills.</div>
+        <div id="aiTrainingList"></div>
+        <button type="button" class="btn-ghost" style="width:auto;padding:9px 16px;margin-top:4px" onclick="addAiTrainingPrompt()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:16px;height:16px"><path d="M12 5v14M5 12h14"/></svg>Agregar prompt de entrenamiento
+        </button>
+      </div>
+
+      <div class="settings-card">
         <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 3.1 6.3 7 1-5 4.9 1.2 6.9-6.3-3.3-6.3 3.3 1.2-6.9-5-4.9 7-1z"/></svg>Skills entrenadas</h4>
-        <div class="desc">Cada skill es una respuesta que le "enseñás" al asistente: definís palabras clave y qué debe responder cuando un cliente las escribe. Se revisan antes que la lógica automática, así que tienen prioridad.</div>
+        <div class="desc">Cada skill es una respuesta que le "enseñás" al asistente: definís palabras clave y qué debe responder cuando un cliente las escribe. Con el motor propio se revisan antes que la lógica automática; con un proveedor externo se le pasan al modelo como referencia.</div>
         <div id="aiSkillsList"></div>
         <button type="button" class="btn-ghost" style="width:auto;padding:9px 16px;margin-top:4px" onclick="addAiSkill()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:16px;height:16px"><path d="M12 5v14M5 12h14"/></svg>Agregar skill
@@ -955,8 +984,12 @@ body.in-admin #storeView,body.in-admin .wa-float,body.in-admin .ai-float,body.in
         <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>Enlaces externos</h4>
         <div class="desc">Botones visibles para los clientes en la tienda. Dejalos vacíos para ocultarlos.</div>
         <div class="f-row">
-          <div class="f-group"><label>Sitio web de Canaan</label><input class="f-input" id="sWebUrl" placeholder="https://www.canaan.co.cr"></div>
-          <div class="f-group"><label>Plataforma de juegos (Bingo de Plantas)</label><input class="f-input" id="sBingoUrl" placeholder="https://usuario.github.io/bingo-plantas"></div>
+          <div class="f-group"><label>Nombre del botón (sitio web)</label><input class="f-input" id="sWebLabel" placeholder="Ej: Sitio web"></div>
+          <div class="f-group"><label>Enlace del sitio web</label><input class="f-input" id="sWebUrl" placeholder="https://www.tutienda.com"></div>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label>Nombre del botón (juego / bingo)</label><input class="f-input" id="sBingoLabel" placeholder="Ej: Bingo de Plantas"></div>
+          <div class="f-group"><label>Enlace de la plataforma de juegos</label><input class="f-input" id="sBingoUrl" placeholder="https://usuario.github.io/bingo-plantas"></div>
         </div>
       </div>
 
@@ -1223,10 +1256,12 @@ const DEFAULT_SETTINGS = {
   whatsapp:'50688888888',
   categories:['Plantas','Productos','Servicios'],
   websiteUrl:'',
+  websiteLabel:'Sitio web',
   bingoUrl:'',
+  bingoLabel:'Bingo de Plantas',
   logoUrl:'',
   iva:13,
-  aiAssistant:{ name:'Asistente de compras', greeting:'', skills:[] }
+  aiAssistant:{ name:'Asistente de compras', greeting:'', skills:[], provider:'local', apiKey:'', model:'', systemPrompt:'', trainingPrompts:[] }
 };
 
 const GRADS = [
@@ -1388,6 +1423,7 @@ function svgIcon(type, size){
   return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none">'+(paths[type]||paths.leaf)+'</svg>';
 }
 const logoSVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 22v-8" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M12 14c0-4.5-3.5-7.5-8-7.5 0 4.5 3.5 7.5 8 7.5zm0-3c0-4.5 3.5-7.5 8-7.5 0 4.5-3.5 7.5-8 7.5z" fill="#fff"/></svg>';
+const aiDefaultIconSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.2 2.2M17.6 17.6l2.2 2.2M2 12h3M19 12h3M4.2 19.8l2.2-2.2M17.6 6.4l2.2-2.2"/></svg>';
 
 /* ---------- render tienda ---------- */
 let activeCat = 'Todos';
@@ -1397,6 +1433,11 @@ function renderHeader(){
   const logoHTML = settings.logoUrl ? '<img src="' + esc(settings.logoUrl) + '" alt="Logo">' : logoSVG;
   document.getElementById('brandLogo').innerHTML = logoHTML;
   document.getElementById('admLogo').innerHTML = logoHTML;
+  const aiIconHTML = settings.logoUrl ? '<img src="' + esc(settings.logoUrl) + '" alt="' + esc(settings.storeName) + '">' : aiDefaultIconSVG;
+  const aiFloatIconEl = document.getElementById('aiFloatIcon');
+  const aiAvatarIconEl = document.getElementById('aiAvatarIcon');
+  if(aiFloatIconEl) aiFloatIconEl.innerHTML = aiIconHTML;
+  if(aiAvatarIconEl) aiAvatarIconEl.innerHTML = aiIconHTML;
   document.getElementById('admStoreName').textContent = settings.storeName;
   document.getElementById('footName').textContent = settings.storeName;
   document.getElementById('footTag').textContent = settings.tagline;
@@ -1424,8 +1465,8 @@ function setCat(c){ activeCat = c; renderChips(); renderGrid(); }
 function renderExternalLinks(){
   const bar = document.getElementById('externalLinksBar');
   const btns = [];
-  if(settings.websiteUrl) btns.push('<a class="item" href="' + esc(settings.websiteUrl) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>Sitio web de Canaan</a>');
-  if(settings.bingoUrl) btns.push('<a class="item" href="' + esc(settings.bingoUrl) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Bingo de Plantas</a>');
+  if(settings.websiteUrl) btns.push('<a class="item" href="' + esc(settings.websiteUrl) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>' + esc(settings.websiteLabel || 'Sitio web') + '</a>');
+  if(settings.bingoUrl) btns.push('<a class="item" href="' + esc(settings.bingoUrl) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>' + esc(settings.bingoLabel || 'Bingo de Plantas') + '</a>');
   bar.innerHTML = btns.join('');
 }
 
@@ -2027,6 +2068,7 @@ function toggleAiPanel(open){
   if(headName) headName.textContent = aiName;
   if(open && !aiOpenedOnce){
     aiOpenedOnce = true;
+    aiConvHistory = [];
     const customGreeting = settings.aiAssistant && settings.aiAssistant.greeting;
     setTimeout(()=>{
       aiAddMsg(customGreeting || ('¡Hola! 👋 Soy ' + aiName + ' de ' + (settings.storeName||'la tienda') + '. Contame qué buscás o tu presupuesto, y te ayudo a encontrar la mejor opción — con el mejor precio y motivos para aprovecharla hoy.'), 'bot');
@@ -2156,7 +2198,92 @@ function aiMatchSkill(lower){
   }
   return null;
 }
+let aiConvHistory = [];
 function aiRespond(rawText){
+  const ai = settings.aiAssistant || {};
+  if((ai.provider === 'anthropic' || ai.provider === 'openai') && ai.apiKey){
+    aiRespondViaAPI(rawText);
+  } else {
+    aiRespondLocal(rawText);
+  }
+}
+function aiBuildSystemPrompt(ai){
+  const catalog = products.filter(p => p.active!==false).slice(0,60).map(p => {
+    const rs = reviewStats(p);
+    return '- ' + p.name + ' | categoría: ' + (p.cat||'Sin categoría') + ' | precio: ' + displayPrice(p) +
+      (stockInfo(p).can ? '' : ' | AGOTADO') + (rs.count ? (' | ' + rs.avg + '★ (' + rs.count + ' reseñas)') : '');
+  }).join('\n');
+  const trainingText = (ai.trainingPrompts||[]).map(t=>t.text).filter(Boolean)
+    .map((t,i)=>'- ' + t).join('\n');
+  const skillsText = (ai.skills||[]).map(s => '- Si el cliente pregunta sobre "' + s.triggers + '", respondé en ese estilo: ' + s.reply).join('\n');
+  return [
+    'Sos ' + (ai.name || 'el asistente de compras') + ', el asistente virtual de la tienda "' + (settings.storeName||'la tienda') + '".',
+    ai.systemPrompt ? ai.systemPrompt : 'Respondé de forma breve, cálida y orientada a ayudar al cliente a comprar.',
+    'Respondé siempre en español, en mensajes cortos (máximo 3-4 líneas).',
+    'Catálogo de productos disponible ahora mismo:\n' + (catalog || '(sin productos cargados)'),
+    trainingText ? ('Ejemplos e instrucciones de entrenamiento para guiar tus respuestas:\n' + trainingText) : '',
+    skillsText ? ('Respuestas ya definidas por el negocio para ciertos temas (usalas como referencia de tono):\n' + skillsText) : '',
+    'Si recomendás un producto, usá exactamente su nombre tal como aparece en el catálogo. No inventes productos, precios ni promociones que no estén en el catálogo.'
+  ].filter(Boolean).join('\n\n');
+}
+async function aiRespondViaAPI(rawText){
+  const ai = settings.aiAssistant || {};
+  aiShowTyping();
+  aiConvHistory.push({ role:'user', content: rawText });
+  try{
+    const sys = aiBuildSystemPrompt(ai);
+    let replyText = '';
+    if(ai.provider === 'anthropic'){
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'x-api-key': ai.apiKey,
+          'anthropic-version':'2023-06-01',
+          'anthropic-dangerous-direct-browser-access':'true'
+        },
+        body: JSON.stringify({
+          model: ai.model || 'claude-sonnet-4-6',
+          max_tokens: 500,
+          system: sys,
+          messages: aiConvHistory.slice(-10)
+        })
+      });
+      const json = await res.json();
+      if(json.error) throw new Error(json.error.message || 'Error de la API de Anthropic');
+      replyText = (json.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+    } else if(ai.provider === 'openai'){
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization':'Bearer ' + ai.apiKey
+        },
+        body: JSON.stringify({
+          model: ai.model || 'gpt-4o-mini',
+          max_tokens: 500,
+          messages: [{ role:'system', content: sys }].concat(aiConvHistory.slice(-10))
+        })
+      });
+      const json = await res.json();
+      if(json.error) throw new Error(json.error.message || 'Error de la API de OpenAI');
+      replyText = ((json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) || '').trim();
+    } else {
+      throw new Error('Proveedor de IA no configurado');
+    }
+    if(!replyText) throw new Error('El modelo devolvió una respuesta vacía');
+    aiHideTyping();
+    aiConvHistory.push({ role:'assistant', content: replyText });
+    aiAddMsg(replyText, 'bot');
+    aiSetChips(aiDefaultChips());
+  }catch(err){
+    console.error('Error del asistente IA externo, usando motor propio como respaldo:', err);
+    aiConvHistory.pop();
+    aiHideTyping();
+    aiRespondLocal(rawText);
+  }
+}
+function aiRespondLocal(rawText){
   const lower = rawText.toLowerCase();
   aiShowTyping();
   setTimeout(() => {
@@ -3162,7 +3289,9 @@ function loadSettingsForm(){
   document.getElementById('sCats').value = settings.categories.join(', ');
   document.getElementById('sSinpe').value = settings.sinpe;
   document.getElementById('sWa').value = settings.whatsapp;
+  document.getElementById('sWebLabel').value = settings.websiteLabel||'Sitio web';
   document.getElementById('sWebUrl').value = settings.websiteUrl||'';
+  document.getElementById('sBingoLabel').value = settings.bingoLabel||'Bingo de Plantas';
   document.getElementById('sBingoUrl').value = settings.bingoUrl||'';
   document.getElementById('sinpePreview').textContent = settings.sinpe;
   pendingLogoDataUrl = null;
@@ -3200,7 +3329,9 @@ async function saveSettings(){
     categories: cats.length ? cats : ['General'],
     sinpe, whatsapp: wa,
     websiteUrl:document.getElementById('sWebUrl').value.trim(),
+    websiteLabel:document.getElementById('sWebLabel').value.trim() || 'Sitio web',
     bingoUrl:document.getElementById('sBingoUrl').value.trim(),
+    bingoLabel:document.getElementById('sBingoLabel').value.trim() || 'Bingo de Plantas',
     logoUrl: pendingLogoDataUrl !== null ? pendingLogoDataUrl : (settings.logoUrl||'')
   };
   try{
@@ -3220,8 +3351,36 @@ function loadAiForm(){
   const ai = settings.aiAssistant || DEFAULT_SETTINGS.aiAssistant;
   document.getElementById('aiName').value = ai.name || '';
   document.getElementById('aiGreeting').value = ai.greeting || '';
+  document.getElementById('aiProvider').value = ai.provider || 'local';
+  document.getElementById('aiModel').value = ai.model || '';
+  document.getElementById('aiApiKey').value = ai.apiKey || '';
+  document.getElementById('aiSystemPrompt').value = ai.systemPrompt || '';
   pmAiSkills = (ai.skills || []).map(s => Object.assign({}, s));
+  pmAiTrainingPrompts = (ai.trainingPrompts || []).map(t => Object.assign({}, t));
   renderAiSkillsPanel();
+  renderAiTrainingPanel();
+}
+function onAiProviderChange(){ /* reservado por si luego querés mostrar/ocultar campos según el proveedor */ }
+let pmAiTrainingPrompts = [];
+function addAiTrainingPrompt(){
+  pmAiTrainingPrompts.push({ id: rid(), text:'' });
+  renderAiTrainingPanel();
+}
+function removeAiTrainingPrompt(id){ pmAiTrainingPrompts = pmAiTrainingPrompts.filter(t=>t.id!==id); renderAiTrainingPanel(); }
+function aiTrainingPromptField(id, val){
+  const t = pmAiTrainingPrompts.find(x=>x.id===id);
+  if(t) t.text = val;
+}
+function renderAiTrainingPanel(){
+  const box = document.getElementById('aiTrainingList');
+  box.innerHTML = pmAiTrainingPrompts.length ? pmAiTrainingPrompts.map(t =>
+    '<div class="variant-row" style="align-items:flex-start">' +
+      '<div class="vr-fields" style="grid-template-columns:1fr">' +
+        '<textarea class="f-input" placeholder="Ej: Si el cliente pregunta por plantas de interior con poca luz, recomendá primero potus y sansevieria" style="min-height:60px" oninput="aiTrainingPromptField(\'' + t.id + '\',this.value)">' + esc(t.text) + '</textarea>' +
+      '</div>' +
+      '<button type="button" class="vr-del" title="Eliminar" onclick="removeAiTrainingPrompt(\'' + t.id + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+    '</div>'
+  ).join('') : '<div class="vr-empty">Sin prompts de entrenamiento todavía. Agregá ejemplos o instrucciones para afinar las respuestas del modelo.</div>';
 }
 function addAiSkill(){
   pmAiSkills.push({ id: rid(), triggers:'', reply:'', cat:'' });
@@ -3252,10 +3411,24 @@ async function saveAiSettings(){
     triggers: (s.triggers||'').trim(),
     reply: (s.reply||'').trim()
   })).filter(s => s.triggers && s.reply);
+  const trainingPrompts = pmAiTrainingPrompts.map(t => ({
+    id: t.id, text: (t.text||'').trim()
+  })).filter(t => t.text);
+  const provider = document.getElementById('aiProvider').value || 'local';
+  const apiKey = document.getElementById('aiApiKey').value.trim();
+  if(provider !== 'local' && !apiKey){
+    toast('Ingresá una API key o volvé a "Motor propio" para usar el asistente sin costo', 'err');
+    return;
+  }
   const data = {
     aiAssistant: {
       name: document.getElementById('aiName').value.trim() || 'Asistente de compras',
       greeting: document.getElementById('aiGreeting').value.trim(),
+      provider,
+      apiKey,
+      model: document.getElementById('aiModel').value.trim(),
+      systemPrompt: document.getElementById('aiSystemPrompt').value.trim(),
+      trainingPrompts,
       skills
     }
   };
