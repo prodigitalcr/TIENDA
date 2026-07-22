@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title id="pageTitle">PRO.DIGITAL — Plataforma de Tiendas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Firebase (compat SDK) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -52,6 +55,7 @@
   --blue:#1D4ED8; --blue-soft:#E3EDFF;
   --radius:18px; --shadow:0 10px 28px rgba(16,24,40,.10);
   --font:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+  --font-display:"Fraunces","Georgia",serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -664,24 +668,35 @@ body.in-admin #storeView,body.in-admin .wa-float,body.in-admin .story-float{disp
 @media (max-width:480px){.ai-panel{width:100vw;height:82vh;border-radius:16px 16px 0 0}.ai-head{border-radius:16px 16px 0 0}}
 body.in-admin .ai-float,body.in-admin .ai-panel{display:none}
 
-/* ============ SELECTOR DE NEGOCIOS (multi-tenant, estilo Treinta) ============ */
-.tenant-selector{display:none;position:fixed;inset:0;z-index:999;background:linear-gradient(180deg,#0F5A30,#0B3D21);overflow-y:auto;padding:40px 20px}
+/* ============ SELECTOR DE NEGOCIOS (landing de la plataforma) ============ */
+.tenant-selector{
+  display:none;position:fixed;inset:0;z-index:999;overflow-y:auto;
+  background:
+    radial-gradient(760px 480px at 10% -8%, rgba(255,209,0,.15), transparent 60%),
+    radial-gradient(900px 620px at 108% 12%, rgba(255,255,255,.07), transparent 55%),
+    linear-gradient(165deg,#0B3D21 0%,#0F5A30 55%,#0C4426 100%);
+  padding:64px 24px 90px;
+}
 body.selector-mode .tenant-selector{display:block}
 body.selector-mode #storeView,body.selector-mode .wa-float,body.selector-mode .ai-float,body.selector-mode .ai-panel{display:none}
-.ts-inner{max-width:880px;margin:0 auto;color:#fff;text-align:center}
-.ts-brand{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:800;letter-spacing:.6px;opacity:.85;margin-bottom:28px}
-.ts-brand-badge{width:30px;height:30px;border-radius:9px;background:var(--yellow);color:#173B25;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900}
-.ts-title{font-size:28px;font-weight:800;margin-bottom:6px}
-.ts-subtitle{font-size:14px;opacity:.75;margin-bottom:28px}
-.ts-msg{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:10px 16px;font-size:13px;margin-bottom:22px;display:inline-block}
-.ts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;text-align:left}
-.ts-card{background:#fff;border-radius:18px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;box-shadow:0 10px 28px rgba(0,0,0,.18);transition:transform .15s ease}
-.ts-card:hover{transform:translateY(-3px)}
-.ts-logo{width:64px;height:64px;border-radius:50%;overflow:hidden;background:var(--green-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ts-inner{max-width:1080px;margin:0 auto;color:#fff;position:relative}
+.ts-leaf{position:absolute;top:-40px;right:-30px;width:260px;height:260px;opacity:.10;pointer-events:none}
+.ts-brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.4px;opacity:.9;margin-bottom:56px;font-size:14px}
+.ts-brand-badge{width:32px;height:32px;border-radius:9px;background:var(--yellow);color:#173B25;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900}
+.ts-title{font-family:var(--font-display);font-weight:500;font-size:clamp(32px,5.6vw,54px);line-height:1.08;letter-spacing:-.01em;max-width:620px;margin-bottom:44px}
+.ts-title em{font-style:italic;font-weight:600;color:var(--yellow)}
+.ts-msg{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:10px 16px;font-size:13px;margin:0 0 26px;display:inline-block}
+.ts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px}
+.ts-card{background:#fff;border-radius:20px;padding:26px 20px;display:flex;flex-direction:column;align-items:flex-start;gap:14px;box-shadow:0 14px 34px rgba(0,0,0,.22);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s;text-align:left}
+.ts-card:hover{transform:translateY(-5px);box-shadow:0 20px 44px rgba(0,0,0,.3)}
+.ts-logo{width:52px;height:52px;border-radius:14px;overflow:hidden;background:var(--green-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .ts-logo img{width:100%;height:100%;object-fit:cover}
-.ts-fallback{font-size:24px;font-weight:800;color:var(--green-dark)}
-.ts-name{font-weight:800;font-size:14.5px;color:var(--ink)}
-.ts-tag{font-size:12px;color:var(--muted)}
+.ts-fallback{font-family:var(--font-display);font-size:21px;font-weight:600;color:var(--green-dark)}
+.ts-name{font-weight:700;font-size:15.5px;color:var(--ink);line-height:1.25}
+.ts-tag{font-size:12.5px;color:var(--muted);line-height:1.35}
+.ts-arrow{margin-top:auto;width:30px;height:30px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;transition:background .2s}
+.ts-card:hover .ts-arrow{background:var(--yellow)}
+.ts-arrow svg{width:14px;height:14px;color:var(--green-dark)}
 .ts-loading,.ts-empty{grid-column:1/-1;color:rgba(255,255,255,.75);font-size:14px;padding:30px 0}
 .back-to-selector{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--muted);padding:4px 0}
 .back-to-selector svg{width:14px;height:14px}
@@ -697,38 +712,18 @@ body.selector-mode #storeView,body.selector-mode .wa-float,body.selector-mode .a
      tienda carga con su propio logo, catálogo y pedidos. -->
 <div id="tenantSelector" class="tenant-selector">
   <div class="ts-inner">
+    <svg class="ts-leaf" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M100 10C60 40 30 90 40 140c5 24 26 44 60 44 44 0 78-38 78-90 0-38-30-70-78-84z" stroke="#fff" stroke-width="1.4"/>
+      <path d="M100 26v150M100 70c-22-6-38 2-48 18M100 110c26-4 42 4 52 20" stroke="#fff" stroke-width="1.2"/>
+    </svg>
     <div class="ts-brand">
       <span class="ts-brand-badge">PD</span>
       <span>PRO.DIGITAL</span>
     </div>
-    <h1 class="ts-title">Elegí un negocio</h1>
-    <p class="ts-subtitle">Todas estas tiendas viven en la misma plataforma.</p>
+    <h1 class="ts-title">Elegí dónde<br><em>comprar</em> hoy.</h1>
     <div class="ts-msg" id="tenantSelectorMsg" style="display:none"></div>
     <div class="ts-grid" id="tenantSelectorList">
       <div class="ts-loading">Cargando negocios…</div>
-    </div>
-    <button class="back-to-selector" style="color:rgba(255,255,255,.65);margin-top:26px" onclick="openCreateTenant()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
-      <span>Crear negocio nuevo</span>
-    </button>
-  </div>
-</div>
-
-<!-- ================= CREAR NEGOCIO (protegido con clave maestra) ================= -->
-<div class="modal" id="createTenantModal">
-  <div class="modal-bg" onclick="closeCreateTenant()"></div>
-  <div class="modal-card login-card">
-    <div class="modal-body" style="padding:30px 26px">
-      <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
-      <h3>Crear negocio nuevo</h3>
-      <p>Solo la plataforma puede crear negocios. Requiere la clave maestra.</p>
-      <div class="f-group" style="text-align:left"><label>Clave maestra de la plataforma</label><input class="f-input" type="password" id="ctMasterKey" autocomplete="off" placeholder="••••••••"></div>
-      <div class="f-group" style="text-align:left"><label>Nombre del negocio</label><input class="f-input" type="text" id="ctNombre" placeholder="Ej: Vivero Las Flores" oninput="document.getElementById('ctSlug').value = slugify(this.value)"></div>
-      <div class="f-group" style="text-align:left"><label>Identificador para la URL (slug)</label><input class="f-input" type="text" id="ctSlug" placeholder="ej-vivero-las-flores"></div>
-      <div class="f-group" style="text-align:left"><label>Eslogan (opcional)</label><input class="f-input" type="text" id="ctTagline" placeholder="Plantas y jardinería"></div>
-      <div class="f-group" style="text-align:left"><label>Correo del administrador (opcional)</label><input class="f-input" type="email" id="ctAdminEmail" placeholder="admin@negocio.com"></div>
-      <button class="btn-primary" onclick="createTenant()">Crear negocio</button>
-      <p class="hint" style="margin-top:12px">El correo debe existir en Firebase Authentication para poder iniciar sesión como administrador. Podés agregar más correos autorizados después, en Firestore (campo <b>adminEmails</b>).</p>
     </div>
   </div>
 </div>
@@ -3696,51 +3691,6 @@ async function saveSettings(){
 function goToTenant(slug){
   location.href = location.pathname + '?tienda=' + encodeURIComponent(slug);
 }
-
-/* ---------- creación manual de negocios desde la página de inicio ---------- */
-function openCreateTenant(){
-  document.getElementById('createTenantModal').classList.add('show');
-  setTimeout(()=>document.getElementById('ctMasterKey').focus(), 100);
-}
-function closeCreateTenant(){
-  document.getElementById('createTenantModal').classList.remove('show');
-}
-async function createTenant(){
-  const key = document.getElementById('ctMasterKey').value;
-  const nombre = document.getElementById('ctNombre').value.trim();
-  const slug = slugify(document.getElementById('ctSlug').value);
-  const tagline = document.getElementById('ctTagline').value.trim();
-  const adminEmail = document.getElementById('ctAdminEmail').value.trim();
-
-  if(key !== PLATFORM_MASTER_KEY){ toast('Clave maestra incorrecta', 'err'); return; }
-  if(!nombre){ toast('Ingresá el nombre del negocio', 'err'); return; }
-  if(!slug){ toast('Ingresá un identificador (slug) válido', 'err'); return; }
-
-  try{
-    const ref = db.collection('tenants').doc(slug);
-    const existing = await ref.get();
-    if(existing.exists){ toast('Ya existe un negocio con ese identificador', 'err'); return; }
-    await ref.set({
-      nombre,
-      tagline,
-      adminEmails: adminEmail ? [adminEmail] : [],
-      activo: true,
-      logoUrl: '',
-      creadoEn: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    toast('Negocio creado. Ya podés entrar a configurarlo.', 'ok');
-    closeCreateTenant();
-    document.getElementById('ctMasterKey').value = '';
-    document.getElementById('ctNombre').value = '';
-    document.getElementById('ctSlug').value = '';
-    document.getElementById('ctTagline').value = '';
-    document.getElementById('ctAdminEmail').value = '';
-    goToTenant(slug);
-  }catch(e){
-    console.error(e);
-    toast('No se pudo crear el negocio: ' + (e && e.message ? e.message : 'error desconocido'), 'err');
-  }
-}
 async function renderTenantSelector(msg){
   document.body.classList.add('selector-mode');
   const msgBox = document.getElementById('tenantSelectorMsg');
@@ -3764,6 +3714,7 @@ async function renderTenantSelector(msg){
       return '<button class="ts-card" onclick="goToTenant(\'' + d.id.replace(/'/g,"") + '\')">' +
         '<span class="ts-logo">' + logo + '</span>' +
         '<span class="ts-name">' + nombre + '</span>' + tag +
+        '<span class="ts-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>' +
         '</button>';
     }).join('');
   }catch(e){
