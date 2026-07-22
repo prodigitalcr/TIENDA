@@ -3327,7 +3327,7 @@ async function saveProduct(){
     toast(id ? 'Producto actualizado' : 'Producto creado', 'ok');
     closeProductModal();
   }catch(e){
-    toast('No se pudo guardar el producto', 'err');
+    toast('No se pudo guardar el producto: ' + (e && e.message ? e.message : 'error desconocido'), 'err');
     console.error(e);
   }
 }
@@ -3340,7 +3340,7 @@ async function deleteProduct(id){
     await deleteProductFromDB(id);
     toast('Producto eliminado', 'ok');
   }catch(e){
-    toast('No se pudo eliminar el producto', 'err');
+    toast('No se pudo eliminar el producto: ' + (e && e.message ? e.message : 'error desconocido'), 'err');
     console.error(e);
   }
 }
@@ -3384,7 +3384,7 @@ async function setOrderStatus(num, status){
     await ordersCol.doc(num).update({ status, timeline });
     toast('Pedido ' + num + ' → ' + STATUS[status].lbl, 'ok');
   }catch(e){
-    toast('No se pudo actualizar el estado', 'err');
+    toast('No se pudo actualizar el estado: ' + (e && e.message ? e.message : 'error desconocido'), 'err');
     console.error(e);
   }
 }
@@ -3394,7 +3394,7 @@ async function deleteOrder(num){
     await ordersCol.doc(num).delete();
     toast('Pedido eliminado', 'ok');
   }catch(e){
-    toast('No se pudo eliminar el pedido', 'err');
+    toast('No se pudo eliminar el pedido: ' + (e && e.message ? e.message : 'error desconocido'), 'err');
     console.error(e);
   }
 }
@@ -3530,7 +3530,7 @@ async function saveStorePassword(){
     toast('Clave de tienda guardada', 'ok');
   }catch(e){
     console.error(e);
-    toast('No se pudo guardar la clave', 'err');
+    toast('No se pudo guardar la clave: ' + (e && e.message ? e.message : 'error desconocido'), 'err');
   }
 }
 async function removeStorePassword(){
@@ -3542,7 +3542,7 @@ async function removeStorePassword(){
     toast('Clave de tienda eliminada', 'ok');
   }catch(e){
     console.error(e);
-    toast('No se pudo quitar la clave', 'err');
+    toast('No se pudo quitar la clave: ' + (e && e.message ? e.message : 'error desconocido'), 'err');
   }
 }
 
@@ -3659,7 +3659,7 @@ async function saveSettings(){
     document.getElementById('sinpePreview').textContent = sinpe;
     toast('Configuración guardada', 'ok');
   }catch(e){
-    toast('No se pudo guardar la configuración', 'err');
+    toast('No se pudo guardar la configuración: ' + (e && e.message ? e.message : 'error desconocido'), 'err');
     console.error(e);
   }
 }
@@ -3710,7 +3710,7 @@ async function createTenant(){
     goToTenant(slug);
   }catch(e){
     console.error(e);
-    toast('No se pudo crear el negocio', 'err');
+    toast('No se pudo crear el negocio: ' + (e && e.message ? e.message : 'error desconocido'), 'err');
   }
 }
 async function renderTenantSelector(msg){
