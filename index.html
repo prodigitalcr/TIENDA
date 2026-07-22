@@ -618,10 +618,56 @@ body.in-admin #storeView,body.in-admin .wa-float,body.in-admin .story-float{disp
   .radio-cards{grid-template-columns:1fr}
 }
 
+/* ============ ASISTENTE DE COMPRAS IA ============ */
+.ai-float{position:fixed;bottom:90px;right:22px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#4C1D95);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(124,58,237,.45);z-index:60;transition:.2s;color:#fff}
+.ai-float:hover{transform:scale(1.08)}
+#aiFloatIcon{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:22px}
+.ai-panel{position:fixed;bottom:0;right:0;width:400px;max-width:96vw;height:min(640px,88vh);background:#fff;z-index:95;border-radius:18px 0 0 0;box-shadow:-6px -6px 30px rgba(0,0,0,.18);display:flex;flex-direction:column;transform:translateY(110%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.ai-panel.open{transform:translateY(0)}
+.ai-head{background:linear-gradient(135deg,#7C3AED,#4C1D95);color:#fff;padding:16px 18px;border-radius:18px 0 0 0;display:flex;align-items:center;gap:10px}
+.ai-head .ai-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.ai-head .t{flex:1}
+.ai-head .t b{display:block;font-size:14.5px}
+.ai-head .t span{font-size:11.5px;opacity:.85;display:flex;align-items:center;gap:4px}
+.ai-head .t span::before{content:'';width:7px;height:7px;border-radius:50%;background:#4ADE80;display:inline-block}
+.ai-head .close-x{color:#fff}
+.ai-head .close-x:hover{background:rgba(255,255,255,.18)}
+.ai-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#F9F7FF}
+.ai-msg{max-width:86%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.45}
+.ai-msg.bot{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.ai-msg.user{align-self:flex-end;background:var(--green);color:#fff;border-bottom-right-radius:4px}
+.ai-suggest-card{align-self:flex-start;max-width:92%;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.ai-suggest-card .asc-img{width:100%;aspect-ratio:16/10;background:#F7F8FA;overflow:hidden}
+.ai-suggest-card .asc-img img{width:100%;height:100%;object-fit:cover}
+.ai-suggest-card .asc-body{padding:10px 12px}
+.ai-suggest-card .asc-name{font-weight:700;font-size:13.5px;margin-bottom:2px}
+.ai-suggest-card .asc-price{display:flex;align-items:baseline;gap:6px;margin-bottom:8px}
+.ai-suggest-card .asc-price .now{font-weight:800;font-size:15px;color:#E8351D}
+.ai-suggest-card .asc-price .was{font-size:11.5px;color:var(--muted);text-decoration:line-through}
+.ai-suggest-card .asc-actions{display:flex;gap:6px}
+.ai-suggest-card .asc-actions button{flex:1;padding:8px 6px;border-radius:9px;font-size:12px;font-weight:700}
+.ai-btn-view{background:#F3F4F6;color:var(--ink)}
+.ai-btn-view:hover{background:#E5E7EB}
+.ai-btn-add{background:var(--green);color:#fff}
+.ai-btn-add:hover{background:var(--green-dark)}
+.ai-input-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line);background:#fff}
+.ai-input-row input{flex:1;padding:10px 14px;border:1px solid var(--line);border-radius:999px;outline:none;font-size:13.5px}
+.ai-input-row input:focus{border-color:#7C3AED}
+.ai-send{width:40px;height:40px;border-radius:50%;background:#7C3AED;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ai-send:hover{background:#4C1D95}
+.ai-send svg{width:17px;height:17px}
+.ai-typing{align-self:flex-start;display:flex;gap:4px;padding:12px 15px;background:#fff;border:1px solid var(--line);border-radius:14px;border-bottom-left-radius:4px}
+.ai-typing span{width:6px;height:6px;border-radius:50%;background:#B9A6EE;animation:aiTyping 1.1s infinite ease-in-out}
+.ai-typing span:nth-child(2){animation-delay:.15s}
+.ai-typing span:nth-child(3){animation-delay:.3s}
+@keyframes aiTyping{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
+@media (max-width:480px){.ai-panel{width:100vw;height:82vh;border-radius:16px 16px 0 0}.ai-head{border-radius:16px 16px 0 0}}
+body.in-admin .ai-float,body.in-admin .ai-panel{display:none}
+
 /* ============ SELECTOR DE NEGOCIOS (multi-tenant, estilo Treinta) ============ */
 .tenant-selector{display:none;position:fixed;inset:0;z-index:999;background:linear-gradient(180deg,#0F5A30,#0B3D21);overflow-y:auto;padding:40px 20px}
 body.selector-mode .tenant-selector{display:block}
-body.selector-mode #storeView,body.selector-mode .wa-float{display:none}
+body.selector-mode #storeView,body.selector-mode .wa-float,body.selector-mode .ai-float,body.selector-mode .ai-panel{display:none}
 .ts-inner{max-width:880px;margin:0 auto;color:#fff;text-align:center}
 .ts-brand{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:800;letter-spacing:.6px;opacity:.85;margin-bottom:28px}
 .ts-brand-badge{width:30px;height:30px;border-radius:9px;background:var(--yellow);color:#173B25;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900}
@@ -743,6 +789,28 @@ body.selector-mode #storeView,body.selector-mode .wa-float{display:none}
 <a class="wa-float" id="waFloat" target="_blank" title="Escríbenos por WhatsApp">
   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.6-6.1c-.3-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.4-3c-.3-.4 0-.5.2-.8l.4-.5c.1-.2.1-.4 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.9.9-1.1 2.2-.2 3.9a11.6 11.6 0 0 0 4.5 4.2c1.7.8 2.4.9 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2 0-.1-.2-.1-.5-.2z"/></svg>
 </a>
+
+<!-- ================= ASISTENTE DE COMPRAS IA ================= -->
+<button class="ai-float" id="aiFloatBtn" onclick="toggleAI()" title="Hablar con el asistente" style="display:none">
+  <div id="aiFloatIcon">✨</div>
+</button>
+<div class="ai-panel" id="aiPanel">
+  <div class="ai-head">
+    <div class="ai-avatar">✨</div>
+    <div class="t">
+      <b id="aiAssistantName">Asistente</b>
+      <span>En línea</span>
+    </div>
+    <button class="close-x icon-btn" style="color:#fff" onclick="toggleAI()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="ai-body" id="aiChatBody"></div>
+  <form class="ai-input-row" id="aiForm" onsubmit="handleAISubmit(event)">
+    <input type="text" id="aiInput" placeholder="Escribí tu mensaje…" autocomplete="off">
+    <button type="submit" class="ai-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+  </form>
+</div>
 
 <div class="story-float" id="storyFloat">
   <button class="story-close" onclick="closeStoryVideo()" title="Cerrar">
@@ -1048,6 +1116,19 @@ body.selector-mode #storeView,body.selector-mode .wa-float{display:none}
       </div>
 
       <div class="settings-card">
+        <h4>✨ Asistente de compras con IA</h4>
+        <div class="desc">Un chat flotante que recomienda productos a tus clientes. Usa la API de Google Gemini — necesitás tu propia clave (gratuita) desde <b>aistudio.google.com</b>. Si dejás la clave vacía, el asistente permanece oculto para los clientes.</div>
+        <div class="f-row">
+          <div class="f-group"><label>Nombre del asistente</label><input class="f-input" id="sAiName" placeholder="Ej: Cana"></div>
+          <div class="f-group"><label>Clave de API de Gemini</label><input class="f-input" type="password" id="sAiKey" autocomplete="off" placeholder="Pegá tu API key aquí"></div>
+        </div>
+        <div class="f-group"><label>Mensaje de bienvenida</label><input class="f-input" id="sAiWelcome" placeholder="¡Hola! ¿Buscás algo en especial?"></div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;margin-top:4px">
+          <input type="checkbox" id="sAiEnabled" style="width:16px;height:16px"> Activar asistente para los clientes de esta tienda
+        </label>
+      </div>
+
+      <div class="settings-card">
         <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Seguridad</h4>
         <div class="desc">El acceso de administrador (control maestro) se gestiona con Firebase Authentication. Para cambiar la contraseña de tu correo, hacelo desde la consola de Firebase.</div>
         <div class="hint">Los correos autorizados como administrador de <b>esta</b> tienda se definen en Firestore, en <b>tenants/{{negocio}}</b>, campo <b>adminEmails</b> (ya no se escriben en el código).</div>
@@ -1334,7 +1415,11 @@ const DEFAULT_SETTINGS = {
   storyVideoUrl:'',
   otherBusinesses:[],
   logoUrl:'',
-  iva:13
+  iva:13,
+  aiEnabled:false,
+  aiApiKey:'',
+  aiAssistantName:'Cana',
+  aiWelcomeMsg:'¡Hola! ¿Buscás algo en especial o querés que te recomiende algo?'
 };
 
 const GRADS = [
@@ -1417,7 +1502,7 @@ function listenSettings(){
   settingsRef.onSnapshot(snap=>{
     settings = Object.assign({}, DEFAULT_SETTINGS, snap.exists ? snap.data() : {});
     settingsReady = true;
-    renderHeader(); renderChips(); renderExternalLinks(); renderStoryVideo();
+    renderHeader(); renderChips(); renderExternalLinks(); renderStoryVideo(); renderAIAssistant();
     if(document.body.classList.contains('in-admin')) loadSettingsForm();
     tryStoreFirstPaint();
   });
@@ -1551,6 +1636,126 @@ function toggleStoryMute(){
   storyMuted = !storyMuted;
   const v = document.querySelector('#storyMedia video');
   if(v) v.muted = storyMuted;
+}
+
+/* ---------- asistente de compras con IA (Google Gemini) ----------
+   Cada tienda activa esto por su cuenta desde Configuraciones, con su
+   propia clave de API. Si no hay clave o está desactivado, el botón
+   flotante ni siquiera se muestra. El asistente solo conoce los
+   productos de ESTA tienda (nunca datos de otros negocios). */
+let aiHistory = [];
+let aiWelcomeShown = false;
+function renderAIAssistant(){
+  const btn = document.getElementById('aiFloatBtn');
+  const canUse = !!(settings.aiEnabled && settings.aiApiKey);
+  btn.style.display = canUse ? 'flex' : 'none';
+  document.getElementById('aiAssistantName').textContent = settings.aiAssistantName || 'Asistente';
+  if(!canUse){
+    document.getElementById('aiPanel').classList.remove('open');
+    return;
+  }
+  if(!aiWelcomeShown){
+    aiWelcomeShown = true;
+    document.getElementById('aiChatBody').innerHTML = '';
+    appendMessage(settings.aiWelcomeMsg || DEFAULT_SETTINGS.aiWelcomeMsg, 'bot');
+  }
+}
+function toggleAI(){
+  document.getElementById('aiPanel').classList.toggle('open');
+}
+function appendMessage(text, sender){
+  const body = document.getElementById('aiChatBody');
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'ai-msg ' + sender;
+  msgDiv.textContent = text;
+  body.appendChild(msgDiv);
+  body.scrollTop = body.scrollHeight;
+  return msgDiv;
+}
+function appendProductSuggestion(productId){
+  const product = products.find(p => p.id === productId);
+  if(!product) return;
+  const body = document.getElementById('aiChatBody');
+  const card = document.createElement('div');
+  card.className = 'ai-suggest-card';
+  const img = (product.images && product.images[0]) ? product.images[0] : '';
+  card.innerHTML =
+    '<div class="asc-img">' + (img ? '<img src="' + esc(img) + '">' : '') + '</div>' +
+    '<div class="asc-body">' +
+      '<div class="asc-name">' + esc(product.name) + '</div>' +
+      '<div class="asc-price"><span class="now">' + fmt(displayPrice(product)) + '</span></div>' +
+      '<div class="asc-actions">' +
+        '<button class="ai-btn-view" onclick="openProductView(\'' + product.id + '\')">Ver detalle</button>' +
+        '<button class="ai-btn-add" onclick="addToCart(\'' + product.id + '\')">Añadir</button>' +
+      '</div>' +
+    '</div>';
+  body.appendChild(card);
+  body.scrollTop = body.scrollHeight;
+}
+async function handleAISubmit(e){
+  e.preventDefault();
+  const inputEl = document.getElementById('aiInput');
+  const userText = inputEl.value.trim();
+  if(!userText) return;
+
+  appendMessage(userText, 'user');
+  inputEl.value = '';
+  aiHistory.push({ role:'user', parts:[{ text: userText }] });
+
+  const body = document.getElementById('aiChatBody');
+  const loadingMsg = document.createElement('div');
+  loadingMsg.className = 'ai-typing';
+  loadingMsg.innerHTML = '<span></span><span></span><span></span>';
+  body.appendChild(loadingMsg);
+  body.scrollTop = body.scrollHeight;
+
+  const apiKey = settings.aiApiKey || '';
+  const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + encodeURIComponent(apiKey);
+  const invJson = JSON.stringify(products.map(p => ({ id:p.id, nombre:p.name, desc:p.desc, precio: displayPrice(p), stock: p.unlimited ? 'ilimitado' : (p.stock||0) })));
+  const systemInstruction =
+    'Eres "' + (settings.aiAssistantName||'Cana') + '", experta en ventas de "' + (settings.storeName||'la tienda') + '".\n' +
+    'Inventario disponible: ' + invJson + '\n' +
+    'Reglas:\n' +
+    '1. Si te piden una recomendación o buscan algo, sugerí 1 o 2 IDs de productos exactos que encajen.\n' +
+    '2. Respondé con amabilidad y resaltando el valor, en español costarricense.\n' +
+    '3. Respondé SOLO en JSON válido sin formato markdown.\n' +
+    'Schema: {"reply": "Texto de respuesta", "productIdsToRecommend": ["id1","id2"]}';
+
+  try{
+    const response = await fetch(apiUrl, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        contents: aiHistory,
+        systemInstruction: { parts:[{ text: systemInstruction }] },
+        generationConfig: { responseMimeType:'application/json' }
+      })
+    });
+    const result = await response.json();
+    loadingMsg.remove();
+    if(result.candidates && result.candidates[0] && result.candidates[0].content){
+      const jsonText = result.candidates[0].content.parts[0].text;
+      try{
+        const data = JSON.parse(jsonText);
+        appendMessage(data.reply, 'bot');
+        aiHistory.push({ role:'model', parts:[{ text: jsonText }] });
+        if(Array.isArray(data.productIdsToRecommend)){
+          data.productIdsToRecommend.forEach(id => appendProductSuggestion(id));
+        }
+      }catch(err){
+        appendMessage('Perdón, no entendí bien eso. ¿Podés repetirlo?', 'bot');
+      }
+    }else if(result.error){
+      appendMessage('No se pudo conectar con el asistente (revisá la clave de API en Configuraciones).', 'bot');
+      console.error(result.error);
+    }else{
+      appendMessage('La señal está fallando, intentá de nuevo.', 'bot');
+    }
+  }catch(error){
+    loadingMsg.remove();
+    console.error(error);
+    appendMessage('Tuve un problemita técnico. 🌿', 'bot');
+  }
 }
 
 /* ---------- selector de negocios (accesos rápidos a otras tiendas) ---------- */
@@ -3292,6 +3497,10 @@ function loadSettingsForm(){
   document.getElementById('sBingoLabel').value = settings.bingoLabel||'Bingo de Plantas';
   document.getElementById('sBingoUrl').value = settings.bingoUrl||'';
   document.getElementById('sStoryVideoUrl').value = settings.storyVideoUrl||'';
+  document.getElementById('sAiName').value = settings.aiAssistantName||'Cana';
+  document.getElementById('sAiKey').value = settings.aiApiKey||'';
+  document.getElementById('sAiWelcome').value = settings.aiWelcomeMsg||'';
+  document.getElementById('sAiEnabled').checked = !!settings.aiEnabled;
   document.getElementById('sinpePreview').textContent = settings.sinpe;
   pendingLogoDataUrl = null;
   document.getElementById('logoPreview').innerHTML = settings.logoUrl ? '<img src="' + esc(settings.logoUrl) + '" alt="Logo">' : logoSVG;
@@ -3438,6 +3647,10 @@ async function saveSettings(){
     bingoUrl:document.getElementById('sBingoUrl').value.trim(),
     bingoLabel:document.getElementById('sBingoLabel').value.trim() || 'Bingo de Plantas',
     storyVideoUrl:document.getElementById('sStoryVideoUrl').value.trim(),
+    aiEnabled: document.getElementById('sAiEnabled').checked,
+    aiApiKey: document.getElementById('sAiKey').value.trim(),
+    aiAssistantName: document.getElementById('sAiName').value.trim() || 'Cana',
+    aiWelcomeMsg: document.getElementById('sAiWelcome').value.trim() || DEFAULT_SETTINGS.aiWelcomeMsg,
     logoUrl: pendingLogoDataUrl !== null ? pendingLogoDataUrl : (settings.logoUrl||'')
   };
   try{
