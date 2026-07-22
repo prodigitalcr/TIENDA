@@ -1152,6 +1152,7 @@ body.selector-mode #storeView,body.selector-mode .wa-float,body.selector-mode .a
         <div class="hint" id="migrationStatus" style="display:none"></div>
       </div>
 
+      <div class="hint" id="permDebugHint" style="max-width:760px;margin-bottom:6px"></div>
       <div style="max-width:760px;display:flex;gap:10px;justify-content:flex-end">
         <button class="btn-ghost" style="width:auto;padding:12px 22px" onclick="loadSettingsForm()">Descartar</button>
         <button class="btn-dark" style="padding:12px 26px" onclick="saveSettings()">Guardar cambios</button>
@@ -3506,6 +3507,19 @@ function loadSettingsForm(){
   document.getElementById('logoPreview').innerHTML = settings.logoUrl ? '<img src="' + esc(settings.logoUrl) + '" alt="Logo">' : logoSVG;
   checkLegacyMigration();
   refreshStorePasswordStatus();
+  showPermDebugHint();
+}
+
+/* ---------- diagnóstico visible de permisos (correo logueado vs adminEmails) ---------- */
+function showPermDebugHint(){
+  const box = document.getElementById('permDebugHint');
+  if(!box) return;
+  const me = (auth.currentUser && auth.currentUser.email) || '(sin sesión)';
+  const list = (TENANT_DATA && TENANT_DATA.adminEmails) || [];
+  const autorizado = list.includes(me);
+  box.innerHTML = 'Sesión: <b>' + esc(me) + '</b> · Autorizados en Firestore: <b>' +
+    (list.length ? esc(list.join(', ')) : '(vacío)') + '</b> · ' +
+    (autorizado ? '<span style="color:var(--ok,#1B7A43)">✔ coincide</span>' : '<span style="color:var(--danger)">✘ no coincide</span>');
 }
 
 /* ---------- clave extra de la tienda (segundo factor del panel admin) ---------- */
@@ -3659,7 +3673,11 @@ async function saveSettings(){
     document.getElementById('sinpePreview').textContent = sinpe;
     toast('Configuración guardada', 'ok');
   }catch(e){
-    toast('No se pudo guardar la configuración: ' + (e && e.message ? e.message : 'error desconocido'), 'err');
+    const me = (auth.currentUser && auth.currentUser.email) || '(sin sesión)';
+    const list = (TENANT_DATA && TENANT_DATA.adminEmails) || [];
+    toast('No se pudo guardar: ' + (e && e.message ? e.message : 'error desconocido') +
+      ' — sesión: ' + me + ' / autorizados: ' + (list.length ? list.join(', ') : '(vacío)'), 'err');
+    showPermDebugHint();
     console.error(e);
   }
 }
