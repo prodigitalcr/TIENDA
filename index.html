@@ -3779,8 +3779,12 @@ async function bootPlatform(){
   }
   try{
     const snap = await tenantRef().get();
-    if(!snap.exists || snap.data().activo === false){
-      renderTenantSelector('No encontramos ese negocio o está desactivado por ahora.');
+    if(!snap.exists){
+      renderTenantSelector('No existe ningún negocio con el ID "' + TENANT_ID + '" en Firestore. Revisá que el ID del documento en tenants/ sea exactamente ese texto, sin espacios ni mayúsculas.');
+      return;
+    }
+    if(snap.data().activo === false){
+      renderTenantSelector('El negocio "' + TENANT_ID + '" existe pero está marcado como inactivo (activo: false) en Firestore.');
       return;
     }
     TENANT_DATA = snap.data();
@@ -3792,7 +3796,7 @@ async function bootPlatform(){
     listenProducts();
   }catch(e){
     console.error(e);
-    renderTenantSelector('No se pudo cargar esta tienda. Revisá tu conexión e intentá de nuevo.');
+    renderTenantSelector('No se pudo cargar "' + TENANT_ID + '": ' + (e && e.message ? e.message : 'error desconocido'));
   }
 }
 bootPlatform();
