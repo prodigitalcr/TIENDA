@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CANAAN — Vivero y Servicios</title>
+<title id="pageTitle">PRO.DIGITAL — Plataforma de Tiendas</title>
 <!-- Firebase (compat SDK) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -12,6 +12,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
+  /* Este es el ÚNICO proyecto Firebase de TODA la plataforma. Las 5 (o más)
+     tiendas viven en el mismo proyecto, separadas por documento dentro de
+     la colección "tenants" (ver más abajo). No hay que crear un proyecto
+     Firebase nuevo por cada negocio. */
   const firebaseConfig = {
     apiKey: "AIzaSyBOb3nCj4YS7Dmi6zic_yB3KCS-UHVVgpc",
     authDomain: "canaan-24688.firebaseapp.com",
@@ -24,10 +28,12 @@
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
-  /* Correo(s) autorizados como administrador maestro de la tienda.
-     Deben coincidir EXACTAMENTE con las reglas de Firestore y con el
-     usuario que crees en Firebase Authentication > Users. */
-  const ADMIN_EMAILS = ['admin@canaan.com'];
+  /* Los correos admin YA NO se escriben aquí en el código: cada negocio
+     tiene su propia lista de correos autorizados dentro de su documento
+     en la colección "tenants" de Firestore (campo adminEmails). Esta
+     variable se llena en tiempo real cuando la app detecta qué tienda
+     (?tienda=slug) se está mostrando. */
+  let ADMIN_EMAILS = [];
 </script>
 <style>
 :root{
@@ -73,6 +79,14 @@ img{max-width:100%}
 .dot-open{color:var(--green);font-weight:600}
 .dot-closed{color:var(--danger);font-weight:600}
 
+.ext-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;font-size:14px;font-weight:800;color:#fff;background:var(--green);box-shadow:0 4px 12px rgba(27,122,67,.3);transition:.2s}
+.ext-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(27,122,67,.38)}
+.ext-btn svg{width:18px;height:18px}
+.ext-btn.games{background:linear-gradient(135deg,#F59E0B,#D9770D)}
+.ext-btn.games:hover{box-shadow:0 6px 16px rgba(217,119,13,.42)}
+@keyframes extBlinkSlow{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.98)}}
+.ext-btn.blink{animation:extBlinkSlow 2.6s ease-in-out infinite}
+
 .toolbar{max-width:1280px;margin:0 auto;padding:14px 20px 6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .chips{display:flex;gap:8px;flex-wrap:wrap;flex:1}
 .chip{padding:8px 18px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13.5px;font-weight:600;color:var(--ink);transition:.15s}
@@ -111,6 +125,18 @@ img{max-width:100%}
 .wa-float{position:fixed;bottom:22px;right:22px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(37,211,102,.4);z-index:60;transition:.2s}
 .wa-float:hover{transform:scale(1.08)}
 .wa-float svg{width:30px;height:30px;color:#fff}
+
+.story-float{position:fixed;bottom:22px;left:22px;width:190px;aspect-ratio:9/16;border-radius:18px;overflow:hidden;background:#111;box-shadow:0 10px 28px rgba(0,0,0,.35);z-index:59;display:none}
+.story-float.show{display:block}
+.story-media{width:100%;height:100%}
+.story-media video,.story-media iframe{width:100%;height:100%;object-fit:cover;display:block;border:0}
+.story-close,.story-mute{position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:flex;align-items:center;justify-content:center;z-index:2;transition:.15s}
+.story-close{top:8px;right:8px}
+.story-close svg{width:14px;height:14px}
+.story-mute{bottom:8px;right:8px}
+.story-mute svg{width:15px;height:15px}
+.story-close:hover,.story-mute:hover{background:rgba(0,0,0,.72)}
+@media (max-width:480px){.story-float{width:130px}}
 
 /* ============ CARRITO ============ */
 .overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
@@ -430,13 +456,44 @@ textarea.f-input{resize:vertical;min-height:70px}
 /* ============ ADMIN ============ */
 #adminView{display:none;position:fixed;inset:0;background:var(--bg);z-index:200}
 body.in-admin #adminView{display:flex}
-body.in-admin #storeView,body.in-admin .wa-float{display:none}
+body.in-admin #storeView,body.in-admin .wa-float,body.in-admin .story-float{display:none}
 .adm-sidebar{width:230px;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0}
-.adm-brand{padding:18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
-.adm-brand .logo{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2E9E5B,#0F5A30);display:flex;align-items:center;justify-content:center}
+.adm-brand-wrap{position:relative;border-bottom:1px solid var(--line)}
+.adm-brand{padding:18px;display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;cursor:pointer;transition:.15s}
+.adm-brand:hover{background:#F9FAFB}
+.adm-brand .logo{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2E9E5B,#0F5A30);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .adm-brand .logo svg{width:22px;height:22px}
-.adm-brand .t b{display:block;font-size:15px}
+.adm-brand .t{flex:1;min-width:0}
+.adm-brand .t b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .adm-brand .t span{font-size:11.5px;color:var(--muted)}
+.biz-chevron{width:16px;height:16px;color:var(--muted);flex-shrink:0;transition:transform .2s}
+.adm-brand.open .biz-chevron{transform:rotate(180deg)}
+.biz-switcher{position:absolute;top:100%;left:10px;right:10px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.14);z-index:210;padding:8px;display:none;max-height:70vh;overflow-y:auto}
+.biz-switcher.open{display:block}
+.biz-item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:10px;width:100%;text-align:left;background:none;border:none;cursor:pointer;transition:.15s}
+.biz-item:hover{background:#F3F4F6}
+.biz-item.current{cursor:default}
+.biz-item.current:hover{background:none}
+.biz-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:800;font-size:13px;overflow:hidden}
+.biz-avatar img{width:100%;height:100%;object-fit:cover}
+.biz-t{flex:1;min-width:0}
+.biz-t b{display:block;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.biz-t span{font-size:11px;color:var(--muted)}
+.biz-check{width:17px;height:17px;color:var(--green);flex-shrink:0}
+.biz-row{display:flex;align-items:center}
+.biz-row .biz-item{flex:1}
+.biz-del{width:26px;height:26px;border-radius:8px;color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:4px;transition:.15s}
+.biz-del:hover{background:var(--danger-soft);color:var(--danger)}
+.biz-del svg{width:14px;height:14px}
+.biz-add-btn{display:flex;align-items:center;gap:8px;padding:10px 8px;border-radius:10px;font-size:13.5px;font-weight:700;color:var(--green);width:100%;text-align:left}
+.biz-add-btn:hover{background:var(--green-soft)}
+.biz-add-btn svg{width:17px;height:17px}
+.biz-add-form{display:none;flex-direction:column;gap:6px;padding:8px}
+.biz-add-form.open{display:flex}
+.biz-add-form .f-input{padding:9px 11px;font-size:13px}
+.biz-add-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:2px}
+.biz-add-actions button{width:auto;padding:8px 14px;font-size:12.5px}
+.biz-empty{padding:8px;font-size:12px;color:var(--muted)}
 .adm-nav{padding:14px 10px;display:flex;flex-direction:column;gap:2px;flex:1;overflow-y:auto}
 .adm-nav .sec{font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.8px;padding:12px 12px 6px;text-transform:uppercase}
 .adm-link{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:10px;font-size:14px;font-weight:600;color:#374151;width:100%;text-align:left;transition:.15s}
@@ -552,9 +609,52 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
   .f-row{grid-template-columns:1fr}
   .radio-cards{grid-template-columns:1fr}
 }
+
+/* ============ SELECTOR DE NEGOCIOS (multi-tenant, estilo Treinta) ============ */
+.tenant-selector{display:none;position:fixed;inset:0;z-index:999;background:linear-gradient(180deg,#0F5A30,#0B3D21);overflow-y:auto;padding:40px 20px}
+body.selector-mode .tenant-selector{display:block}
+body.selector-mode #storeView,body.selector-mode .wa-float{display:none}
+.ts-inner{max-width:880px;margin:0 auto;color:#fff;text-align:center}
+.ts-brand{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:800;letter-spacing:.6px;opacity:.85;margin-bottom:28px}
+.ts-brand-badge{width:30px;height:30px;border-radius:9px;background:var(--yellow);color:#173B25;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900}
+.ts-title{font-size:28px;font-weight:800;margin-bottom:6px}
+.ts-subtitle{font-size:14px;opacity:.75;margin-bottom:28px}
+.ts-msg{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:10px 16px;font-size:13px;margin-bottom:22px;display:inline-block}
+.ts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;text-align:left}
+.ts-card{background:#fff;border-radius:18px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;box-shadow:0 10px 28px rgba(0,0,0,.18);transition:transform .15s ease}
+.ts-card:hover{transform:translateY(-3px)}
+.ts-logo{width:64px;height:64px;border-radius:50%;overflow:hidden;background:var(--green-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ts-logo img{width:100%;height:100%;object-fit:cover}
+.ts-fallback{font-size:24px;font-weight:800;color:var(--green-dark)}
+.ts-name{font-weight:800;font-size:14.5px;color:var(--ink)}
+.ts-tag{font-size:12px;color:var(--muted)}
+.ts-loading,.ts-empty{grid-column:1/-1;color:rgba(255,255,255,.75);font-size:14px;padding:30px 0}
+.back-to-selector{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--muted);padding:4px 0}
+.back-to-selector svg{width:14px;height:14px}
+.biz-sec-label{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:10px 14px 4px}
 </style>
 </head>
 <body>
+
+<!-- ================= SELECTOR DE NEGOCIOS (ESTILO TREINTA) =================
+     Se muestra cuando la URL no trae "?tienda=slug" (o el slug no existe /
+     está desactivado). Lista todos los negocios activos de la plataforma;
+     al tocar uno, navega a la misma página con "?tienda=slug" y esa
+     tienda carga con su propio logo, catálogo y pedidos. -->
+<div id="tenantSelector" class="tenant-selector">
+  <div class="ts-inner">
+    <div class="ts-brand">
+      <span class="ts-brand-badge">PD</span>
+      <span>PRO.DIGITAL</span>
+    </div>
+    <h1 class="ts-title">Elegí un negocio</h1>
+    <p class="ts-subtitle">Todas estas tiendas viven en la misma plataforma.</p>
+    <div class="ts-msg" id="tenantSelectorMsg" style="display:none"></div>
+    <div class="ts-grid" id="tenantSelectorList">
+      <div class="ts-loading">Cargando negocios…</div>
+    </div>
+  </div>
+</div>
 
 <!-- ================= VISTA TIENDA (CLIENTES) ================= -->
 <div id="storeView">
@@ -562,8 +662,12 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
     <div class="store-header-inner">
       <div class="brand">
         <span class="logo" id="brandLogo"></span>
-        <span id="brandName">CANAAN</span>
+        <span id="brandName">Tienda</span>
       </div>
+      <button class="back-to-selector" onclick="location.href=location.pathname" title="Ver todos los negocios">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
+        <span>Otros negocios</span>
+      </button>
       <div class="search-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input class="search-input" id="searchInput" name="storeSearchQuery" type="search" autocomplete="off" data-lpignore="true" data-1p-ignore="true" placeholder="Buscar producto" oninput="renderGrid()">
@@ -585,7 +689,7 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
 
 
   <div class="info-bar" id="infoBar"></div>
-  <div class="info-bar" id="externalLinksBar" style="padding-top:0"></div>
+  <div class="info-bar" id="externalLinksBar" style="padding-top:8px;padding-bottom:10px"></div>
 
   <div class="toolbar">
     <div class="chips" id="catChips"></div>
@@ -608,6 +712,16 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
 <a class="wa-float" id="waFloat" target="_blank" title="Escríbenos por WhatsApp">
   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.6-6.1c-.3-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.4-3c-.3-.4 0-.5.2-.8l.4-.5c.1-.2.1-.4 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.9.9-1.1 2.2-.2 3.9a11.6 11.6 0 0 0 4.5 4.2c1.7.8 2.4.9 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2 0-.1-.2-.1-.5-.2z"/></svg>
 </a>
+
+<div class="story-float" id="storyFloat">
+  <button class="story-close" onclick="closeStoryVideo()" title="Cerrar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg>
+  </button>
+  <button class="story-mute" id="storyMuteBtn" onclick="toggleStoryMute()" title="Silenciar / activar sonido">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M18.5 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+  </button>
+  <div class="story-media" id="storyMedia"></div>
+</div>
 
 <div class="overlay" id="cartOverlay" onclick="toggleCart(false)"></div>
 <aside class="cart-drawer" id="cartDrawer">
@@ -695,7 +809,7 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
       <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
       <h3>Acceso administrador</h3>
       <p>Solo el dueño de la tienda puede ingresar aquí. Control maestro.</p>
-      <div class="f-group" style="text-align:left"><label>Correo</label><input class="f-input" type="email" id="adminEmail" name="adminEmail" autocomplete="username" placeholder="admin@canaan.com" onkeydown="if(event.key==='Enter')document.getElementById('adminPass').focus()"></div>
+      <div class="f-group" style="text-align:left"><label>Correo</label><input class="f-input" type="email" id="adminEmail" name="adminEmail" autocomplete="username" placeholder="admin@tunegocio.com" onkeydown="if(event.key==='Enter')document.getElementById('adminPass').focus()"></div>
       <div class="f-group" style="text-align:left"><label>Contraseña</label><input class="f-input" type="password" id="adminPass" name="adminPass" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="btn-primary" onclick="doLogin()">Ingresar</button>
       <p class="hint" style="margin-top:12px">El usuario administrador se crea desde Firebase Authentication (consola de Firebase).</p>
@@ -706,9 +820,34 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
 <!-- ================= PANEL ADMIN ================= -->
 <div id="adminView">
   <aside class="adm-sidebar">
-    <div class="adm-brand">
-      <span class="logo" id="admLogo"></span>
-      <div class="t"><b id="admStoreName">CANAAN</b><span>Propietario</span></div>
+    <div class="adm-brand-wrap">
+      <button class="adm-brand" id="bizSwitcherBtn" onclick="toggleBizSwitcher(event)">
+        <span class="logo" id="admLogo"></span>
+        <div class="t"><b id="admStoreName">CANAAN</b><span>Propietario</span></div>
+        <svg class="biz-chevron" id="bizChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="biz-switcher" id="bizSwitcher">
+        <div class="biz-item current">
+          <span class="biz-avatar" id="bizCurrentAvatar"></span>
+          <div class="biz-t"><b id="bizCurrentName">CANAAN</b><span>Esta tienda</span></div>
+          <svg class="biz-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <div class="biz-sec-label">Otras tiendas de la plataforma</div>
+        <div id="platformBizList"><div class="biz-empty">Cargando…</div></div>
+        <div class="biz-sec-label">Enlaces externos</div>
+        <div id="bizList"></div>
+        <div class="biz-add-form" id="bizAddForm">
+          <input class="f-input" id="bizNewName" placeholder="Nombre del negocio">
+          <input class="f-input" id="bizNewUrl" placeholder="https://enlace-del-negocio.com">
+          <div class="biz-add-actions">
+            <button type="button" class="btn-ghost" onclick="toggleBizAddForm(false)">Cancelar</button>
+            <button type="button" class="btn-dark" onclick="saveNewBusiness()">Guardar</button>
+          </div>
+        </div>
+        <button type="button" class="biz-add-btn" id="bizAddBtn" onclick="toggleBizAddForm(true)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Agregar otro negocio
+        </button>
+      </div>
     </div>
     <nav class="adm-nav">
       <div class="sec">Gestiona tu negocio</div>
@@ -864,9 +1003,22 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
       </div>
 
       <div class="settings-card">
+        <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M12 18h.01"/></svg>Video flotante (formato historia)</h4>
+        <div class="desc">Un video vertical, tipo historia, que flota sobre la tienda para los clientes. Aceptá un enlace de YouTube o un enlace directo a un archivo de video. Dejalo vacío para ocultarlo.</div>
+        <div class="f-group"><label>Enlace del video</label><input class="f-input" id="sStoryVideoUrl" placeholder="https://youtube.com/watch?v=... o enlace directo a un .mp4"></div>
+      </div>
+
+      <div class="settings-card">
         <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Seguridad</h4>
         <div class="desc">El acceso de administrador (control maestro) se gestiona con Firebase Authentication. Para cambiar la contraseña, hacelo desde la consola de Firebase o pedile a Claude que agregue un flujo de "cambio de contraseña" con reautenticación.</div>
-        <div class="hint">Correo admin autorizado actualmente en el código: <b>ADMIN_EMAILS</b> (ver &lt;script&gt; al inicio del archivo).</div>
+        <div class="hint">Los correos autorizados como administrador de <b>esta</b> tienda se definen en Firestore, en <b>tenants/{{negocio}}</b>, campo <b>adminEmails</b> (ya no se escriben en el código).</div>
+      </div>
+
+      <div class="settings-card" id="migrationCard" style="display:none">
+        <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>Herramientas de la plataforma</h4>
+        <div class="desc">Detectamos datos de esta tienda guardados en el formato anterior (antes de que la plataforma tuviera varios negocios). Podés copiarlos una sola vez hacia el espacio de esta tienda dentro de la plataforma. No borra nada del formato anterior.</div>
+        <button type="button" class="btn-dark" style="width:auto;padding:10px 18px" id="migrationBtn" onclick="runLegacyMigration()">Migrar datos antiguos de esta tienda</button>
+        <div class="hint" id="migrationStatus" style="display:none"></div>
       </div>
 
       <div style="max-width:760px;display:flex;gap:10px;justify-content:flex-end">
@@ -1118,7 +1270,7 @@ body.in-admin #storeView,body.in-admin .wa-float{display:none}
 ===================================================== */
 
 const DEFAULT_SETTINGS = {
-  storeName:'CANAAN',
+  storeName:'Mi Tienda',
   tagline:'Vivero, jardinería y servicios',
   hours:'Lun - Sáb · 6:00 a.m. - 5:00 p.m.',
   shipping:'Hacemos envíos por Uber Flash · San José, CR',
@@ -1129,6 +1281,8 @@ const DEFAULT_SETTINGS = {
   websiteLabel:'Sitio web',
   bingoUrl:'',
   bingoLabel:'Bingo de Plantas',
+  storyVideoUrl:'',
+  otherBusinesses:[],
   logoUrl:'',
   iva:13
 };
@@ -1146,9 +1300,33 @@ let cart = {}; // {productId: qty}
 let isAdminSession = false;
 let unsubOrders = null;
 
-const settingsRef = db.collection('settings').doc('store');
-const productsCol = db.collection('products');
-const ordersCol = db.collection('orders');
+/* ---------- multi-tenant: qué negocio se está mostrando ---------- */
+/* La plataforma es UN solo archivo/código para todos los negocios.
+   Cada negocio vive en su propio documento tenants/{slug} dentro del
+   MISMO proyecto Firebase, y sus datos (settings, products, orders)
+   están separados en subcolecciones: tenants/{slug}/settings,
+   tenants/{slug}/products, tenants/{slug}/orders. Así cada tienda
+   tiene su propia "base de datos" lógica sin mezclarse con las demás,
+   y su propia URL vía "?tienda=slug". */
+function getTenantSlugFromURL(){
+  return (new URLSearchParams(location.search).get('tienda') || '').trim().toLowerCase();
+}
+let TENANT_ID = getTenantSlugFromURL();
+let TENANT_DATA = null;
+function tenantRef(){ return db.collection('tenants').doc(TENANT_ID); }
+function tenantCol(name){ return tenantRef().collection(name); }
+
+let settingsRef, productsCol, ordersCol;
+function bindTenantRefs(){
+  settingsRef = tenantCol('settings').doc('store');
+  productsCol = tenantCol('products');
+  ordersCol = tenantCol('orders');
+}
+
+/* claves de localStorage separadas por negocio, para que "me gusta" y
+   "productos ya comprados" de una tienda no se mezclen con otra tienda
+   abierta en el mismo navegador */
+function tenantLS(key){ return key + '_' + (TENANT_ID || 'default'); }
 
 /* Evita que la grilla de productos "salte" mientras el cliente está tocando:
    el banner publicitario (settings) y los productos llegan de Firestore por
@@ -1169,7 +1347,7 @@ function listenSettings(){
   settingsRef.onSnapshot(snap=>{
     settings = Object.assign({}, DEFAULT_SETTINGS, snap.exists ? snap.data() : {});
     settingsReady = true;
-    renderHeader(); renderChips(); renderExternalLinks();
+    renderHeader(); renderChips(); renderExternalLinks(); renderStoryVideo();
     if(document.body.classList.contains('in-admin')) loadSettingsForm();
     tryStoreFirstPaint();
   });
@@ -1270,6 +1448,152 @@ function youtubeEmbedUrl(url){
   return m ? ('https://www.youtube.com/embed/' + m[1]) : null;
 }
 
+/* ---------- video flotante tipo historia ---------- */
+let storyClosed = false, storyMuted = true, storyLastUrl = null;
+function storyYoutubeId(url){
+  if(!url) return null;
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+  return m ? m[1] : null;
+}
+function renderStoryVideo(){
+  const wrap = document.getElementById('storyFloat');
+  const url = (settings.storyVideoUrl||'').trim();
+  if(!url || storyClosed){ wrap.classList.remove('show'); return; }
+  if(url !== storyLastUrl){
+    storyLastUrl = url;
+    const media = document.getElementById('storyMedia');
+    const ytId = storyYoutubeId(url);
+    if(ytId){
+      media.innerHTML = '<iframe src="https://www.youtube.com/embed/' + ytId + '?autoplay=1&mute=' + (storyMuted?1:0) + '&loop=1&playlist=' + ytId + '&controls=0&modestbranding=1&playsinline=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+      document.getElementById('storyMuteBtn').style.display = 'none';
+    }else{
+      media.innerHTML = '<video src="' + esc(url) + '" autoplay loop playsinline' + (storyMuted?' muted':'') + '></video>';
+      document.getElementById('storyMuteBtn').style.display = 'flex';
+    }
+  }
+  wrap.classList.add('show');
+}
+function closeStoryVideo(){
+  storyClosed = true;
+  document.getElementById('storyFloat').classList.remove('show');
+}
+function toggleStoryMute(){
+  storyMuted = !storyMuted;
+  const v = document.querySelector('#storyMedia video');
+  if(v) v.muted = storyMuted;
+}
+
+/* ---------- selector de negocios (accesos rápidos a otras tiendas) ---------- */
+const BIZ_COLORS = ['#2E9E5B','#D97706','#2563EB','#DB2777','#7C3AED','#0D9488','#DC2626','#4B5563'];
+function bizColor(seed){
+  let h = 0;
+  for(let i=0;i<seed.length;i++) h = (h*31 + seed.charCodeAt(i)) >>> 0;
+  return BIZ_COLORS[h % BIZ_COLORS.length];
+}
+function normalizeUrl(u){
+  u = (u||'').trim();
+  if(!u) return '';
+  if(!/^https?:\/\//i.test(u)) u = 'https://' + u;
+  return u;
+}
+function renderBizList(){
+  const list = document.getElementById('bizList');
+  if(!list) return;
+  const biz = settings.otherBusinesses || [];
+  if(!biz.length){ list.innerHTML = '<div class="biz-empty">Todavía no agregaste otros negocios.</div>'; return; }
+  list.innerHTML = biz.map(b =>
+    '<div class="biz-row">' +
+      '<button type="button" class="biz-item" onclick="openBusiness(\'' + esc(b.url) + '\')">' +
+        '<span class="biz-avatar" style="background:' + bizColor(b.name||'?') + '">' + esc((b.name||'?').trim().charAt(0).toUpperCase()) + '</span>' +
+        '<div class="biz-t"><b>' + esc(b.name) + '</b><span>Otro negocio</span></div>' +
+      '</button>' +
+      '<button type="button" class="biz-del" title="Quitar" onclick="removeBusiness(\'' + b.id + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+    '</div>'
+  ).join('');
+}
+let platformTenantsCache = null;
+async function loadPlatformBizList(){
+  const box = document.getElementById('platformBizList');
+  if(!box) return;
+  if(platformTenantsCache){ renderPlatformBizList(platformTenantsCache); return; }
+  try{
+    const q = await db.collection('tenants').where('activo','==', true).get();
+    platformTenantsCache = q.docs.filter(d => d.id !== TENANT_ID).map(d => Object.assign({id:d.id}, d.data()));
+    renderPlatformBizList(platformTenantsCache);
+  }catch(e){
+    console.error(e);
+    box.innerHTML = '<div class="biz-empty">No se pudieron cargar.</div>';
+  }
+}
+function renderPlatformBizList(list){
+  const box = document.getElementById('platformBizList');
+  if(!box) return;
+  if(!list.length){ box.innerHTML = '<div class="biz-empty">No hay más tiendas activas todavía.</div>'; return; }
+  box.innerHTML = list.map(t => {
+    const nombre = esc(t.nombre || t.id);
+    const avatar = t.logoUrl
+      ? '<img src="' + t.logoUrl + '" alt="' + nombre + '">'
+      : nombre.charAt(0).toUpperCase();
+    return '<button type="button" class="biz-item" onclick="goToTenant(\'' + t.id.replace(/'/g,"") + '\')">' +
+      '<span class="biz-avatar" style="background:' + bizColor(nombre) + '">' + avatar + '</span>' +
+      '<div class="biz-t"><b>' + nombre + '</b><span>Cambiar a esta tienda</span></div>' +
+    '</button>';
+  }).join('');
+}
+function toggleBizSwitcher(ev){
+  if(ev) ev.stopPropagation();
+  const sw = document.getElementById('bizSwitcher');
+  const btn = document.getElementById('bizSwitcherBtn');
+  const open = !sw.classList.contains('open');
+  sw.classList.toggle('open', open);
+  btn.classList.toggle('open', open);
+  if(open) loadPlatformBizList();
+  if(!open) toggleBizAddForm(false);
+}
+document.addEventListener('click', function(ev){
+  const sw = document.getElementById('bizSwitcher');
+  const btn = document.getElementById('bizSwitcherBtn');
+  if(!sw || !sw.classList.contains('open')) return;
+  if(sw.contains(ev.target) || (btn && btn.contains(ev.target))) return;
+  sw.classList.remove('open');
+  if(btn) btn.classList.remove('open');
+  toggleBizAddForm(false);
+});
+function toggleBizAddForm(show){
+  document.getElementById('bizAddForm').classList.toggle('open', show);
+  document.getElementById('bizAddBtn').style.display = show ? 'none' : 'flex';
+  if(show){
+    document.getElementById('bizNewName').value = '';
+    document.getElementById('bizNewUrl').value = '';
+    document.getElementById('bizNewName').focus();
+  }
+}
+function openBusiness(url){ if(url) window.open(url, '_blank', 'noopener'); }
+async function saveNewBusiness(){
+  const name = document.getElementById('bizNewName').value.trim();
+  const url = normalizeUrl(document.getElementById('bizNewUrl').value);
+  if(!name){ toast('Ingresá el nombre del negocio', 'err'); return; }
+  if(!url){ toast('Ingresá el enlace del negocio', 'err'); return; }
+  const list = (settings.otherBusinesses || []).concat([{ id: rid(), name, url }]);
+  try{
+    await saveSettingsToDB({ otherBusinesses: list });
+    toggleBizAddForm(false);
+    toast('Negocio agregado', 'ok');
+  }catch(e){
+    toast('No se pudo agregar el negocio', 'err');
+    console.error(e);
+  }
+}
+async function removeBusiness(id){
+  const list = (settings.otherBusinesses || []).filter(b => b.id !== id);
+  try{
+    await saveSettingsToDB({ otherBusinesses: list });
+  }catch(e){
+    toast('No se pudo quitar el negocio', 'err');
+    console.error(e);
+  }
+}
+
 /* ---------- íconos SVG de productos ---------- */
 function svgIcon(type, size){
   const s = size||72;
@@ -1302,6 +1626,9 @@ function renderHeader(){
   document.getElementById('brandLogo').innerHTML = logoHTML;
   document.getElementById('admLogo').innerHTML = logoHTML;
   document.getElementById('admStoreName').textContent = settings.storeName;
+  document.getElementById('bizCurrentAvatar').innerHTML = logoHTML;
+  document.getElementById('bizCurrentName').textContent = settings.storeName;
+  renderBizList();
   document.getElementById('footName').textContent = settings.storeName;
   document.getElementById('footTag').textContent = settings.tagline;
   document.title = settings.storeName + ' — Tienda en línea';
@@ -1328,8 +1655,8 @@ function setCat(c){ activeCat = c; renderChips(); renderGrid(); }
 function renderExternalLinks(){
   const bar = document.getElementById('externalLinksBar');
   const btns = [];
-  if(settings.websiteUrl) btns.push('<a class="item" href="' + esc(settings.websiteUrl) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>' + esc(settings.websiteLabel || 'Sitio web') + '</a>');
-  if(settings.bingoUrl) btns.push('<a class="item" href="' + esc(settings.bingoUrl) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>' + esc(settings.bingoLabel || 'Bingo de Plantas') + '</a>');
+  if(settings.websiteUrl) btns.push('<a class="ext-btn web" href="' + esc(settings.websiteUrl) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>' + esc(settings.websiteLabel || 'Sitio web') + '</a>');
+  if(settings.bingoUrl) btns.push('<a class="ext-btn games blink" href="' + esc(settings.bingoUrl) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>' + esc(settings.bingoLabel || 'Bingo de Plantas') + '</a>');
   bar.innerHTML = btns.join('');
 }
 
@@ -1696,9 +2023,9 @@ document.addEventListener('keydown', e => {
 
 /* ---------- reacciones: me gusta / compartir ---------- */
 function getLocalLikes(){
-  try{ return JSON.parse(localStorage.getItem('canaanLikes')||'[]'); }catch(e){ return []; }
+  try{ return JSON.parse(localStorage.getItem(tenantLS('likes'))||'[]'); }catch(e){ return []; }
 }
-function saveLocalLikes(arr){ try{ localStorage.setItem('canaanLikes', JSON.stringify(arr)); }catch(e){} }
+function saveLocalLikes(arr){ try{ localStorage.setItem(tenantLS('likes'), JSON.stringify(arr)); }catch(e){} }
 function isLiked(id){ return getLocalLikes().includes(id); }
 function updateLikeUI(p){
   const btn = document.getElementById('pvLikeBtn');
@@ -1727,7 +2054,7 @@ function shareProduct(id){
   const p = products.find(x=>x.id===id);
   if(!p) return;
   const url = location.href.split('#')[0].split('?')[0] + '?p=' + id;
-  const text = p.name + ' — ' + (settings.storeName||'CANAAN');
+  const text = p.name + ' — ' + (settings.storeName||'Mi Tienda');
   if(navigator.share){
     navigator.share({ title:p.name, text, url }).catch(()=>{});
   } else if(navigator.clipboard){
@@ -2004,12 +2331,12 @@ async function submitOrder(){
 
 /* ---------- reseñas escritas por el cliente ---------- */
 function getOrderedProducts(){
-  try{ return JSON.parse(localStorage.getItem('canaanOrderedProducts')||'[]'); }catch(e){ return []; }
+  try{ return JSON.parse(localStorage.getItem(tenantLS('orderedProducts'))||'[]'); }catch(e){ return []; }
 }
 function markProductsAsOrdered(ids){
   const cur = new Set(getOrderedProducts());
   ids.forEach(id => cur.add(id));
-  try{ localStorage.setItem('canaanOrderedProducts', JSON.stringify(Array.from(cur))); }catch(e){}
+  try{ localStorage.setItem(tenantLS('orderedProducts'), JSON.stringify(Array.from(cur))); }catch(e){}
 }
 let csrProductId = null, csrRating = 5, csrPhoto = '';
 function openReviewForm(id){
@@ -2154,12 +2481,17 @@ function enterAdmin(){
 function viewStore(){ document.body.classList.remove('in-admin'); renderHeader(); renderChips(); renderGrid(); updateCartUI(); }
 
 /* mantiene la sesión de administrador sincronizada con Firebase Auth */
-auth.onAuthStateChanged(user => {
+function refreshAdminSession(){
+  const user = auth.currentUser;
   isAdminSession = !!(user && ADMIN_EMAILS.includes(user.email));
   if(!isAdminSession && document.body.classList.contains('in-admin')){
     document.body.classList.remove('in-admin');
   }
-});
+}
+/* Se re-evalúa tanto cuando cambia el login de Firebase Auth como cuando
+   termina de cargar el tenant (ADMIN_EMAILS llega un poco después, ya que
+   depende de la tienda que se está mostrando en la URL). */
+auth.onAuthStateChanged(user => { refreshAdminSession(); });
 function showPanel(name, btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -2257,7 +2589,7 @@ function pdfNewDoc(subtitle){
   doc.setTextColor(255,255,255);
   doc.setFont('helvetica','bold');
   doc.setFontSize(16);
-  doc.text(settings.storeName || 'CANAAN', 40, 32);
+  doc.text(settings.storeName || 'Mi Tienda', 40, 32);
   doc.setFont('helvetica','normal');
   doc.setFontSize(11);
   doc.text(subtitle, 40, 50);
@@ -2274,7 +2606,7 @@ function pdfFooter(doc){
     doc.setPage(i);
     doc.setFontSize(8.5);
     doc.setTextColor(150,150,150);
-    doc.text((settings.storeName||'CANAAN') + ' - reporte generado desde el panel de administrador', 40, pageH-20);
+    doc.text((settings.storeName||'Mi Tienda') + ' - reporte generado desde el panel de administrador', 40, pageH-20);
     doc.text('Pagina ' + i + ' de ' + pages, pageW-40, pageH-20, { align:'right' });
   }
 }
@@ -2330,7 +2662,7 @@ function exportStatsPDF(){
     theme:'grid', headStyles:{ fillColor:[27,122,67] }, styles:{ fontSize:10, cellPadding:6 }
   });
   pdfFooter(doc);
-  doc.save('canaan-estadisticas-' + todayFileStamp() + '.pdf');
+  doc.save((TENANT_ID||'tienda') + '-estadisticas-' + todayFileStamp() + '.pdf');
   toast('Reporte de estadisticas descargado', 'ok');
 }
 function exportInventoryPDF(){
@@ -2352,7 +2684,7 @@ function exportInventoryPDF(){
   doc.setTextColor(107,114,128);
   doc.text(products.length + ' referencias - ' + products.filter(p=>stockInfo(p).cls!=='ok').length + ' con stock bajo o agotado', 40, doc.lastAutoTable.finalY + 20);
   pdfFooter(doc);
-  doc.save('canaan-inventario-' + todayFileStamp() + '.pdf');
+  doc.save((TENANT_ID||'tienda') + '-inventario-' + todayFileStamp() + '.pdf');
   toast('Reporte de inventario descargado', 'ok');
 }
 function exportOrdersPDF(){
@@ -2374,7 +2706,7 @@ function exportOrdersPDF(){
     columnStyles:{ 4:{ cellWidth:150 }, 5:{ halign:'right' } }
   });
   pdfFooter(doc);
-  doc.save('canaan-pedidos-' + todayFileStamp() + '.pdf');
+  doc.save((TENANT_ID||'tienda') + '-pedidos-' + todayFileStamp() + '.pdf');
   toast('Reporte de pedidos descargado', 'ok');
 }
 function exportCategoriesPDF(){
@@ -2399,7 +2731,7 @@ function exportCategoriesPDF(){
     columnStyles:{ 1:{ halign:'right' }, 2:{ halign:'right' }, 3:{ halign:'right' } }
   });
   pdfFooter(doc);
-  doc.save('canaan-categorias-' + todayFileStamp() + '.pdf');
+  doc.save((TENANT_ID||'tienda') + '-categorias-' + todayFileStamp() + '.pdf');
   toast('Reporte de categorias descargado', 'ok');
 }
 
@@ -2845,9 +3177,77 @@ function loadSettingsForm(){
   document.getElementById('sWebUrl').value = settings.websiteUrl||'';
   document.getElementById('sBingoLabel').value = settings.bingoLabel||'Bingo de Plantas';
   document.getElementById('sBingoUrl').value = settings.bingoUrl||'';
+  document.getElementById('sStoryVideoUrl').value = settings.storyVideoUrl||'';
   document.getElementById('sinpePreview').textContent = settings.sinpe;
   pendingLogoDataUrl = null;
   document.getElementById('logoPreview').innerHTML = settings.logoUrl ? '<img src="' + esc(settings.logoUrl) + '" alt="Logo">' : logoSVG;
+  checkLegacyMigration();
+}
+
+/* ---------- migración de datos del formato anterior (sin multi-tenant) ----------
+   Antes de este cambio, TODA la tienda vivía en las colecciones raíz
+   settings/products/orders. Ahora cada negocio vive en
+   tenants/{slug}/settings|products|orders. Este botón, visible solo si
+   detecta datos en el formato viejo, los copia (no los borra) hacia la
+   tienda que se está administrando en este momento. */
+let legacyCheckDone = false;
+async function checkLegacyMigration(){
+  if(legacyCheckDone) return;
+  legacyCheckDone = true;
+  try{
+    const legacySettings = await db.collection('settings').doc('store').get();
+    const legacyProducts = await db.collection('products').limit(1).get();
+    if(legacySettings.exists || !legacyProducts.empty){
+      document.getElementById('migrationCard').style.display = '';
+    }
+  }catch(e){
+    /* sin datos viejos o sin permisos sobre la ruta anterior: no mostrar nada */
+    console.error(e);
+  }
+}
+async function runLegacyMigration(){
+  const btn = document.getElementById('migrationBtn');
+  const status = document.getElementById('migrationStatus');
+  status.style.display = 'block';
+  btn.disabled = true;
+  status.textContent = 'Migrando…';
+  try{
+    const migrated = { settings:false, products:0, orders:0 };
+
+    const legacySettingsSnap = await db.collection('settings').doc('store').get();
+    if(legacySettingsSnap.exists){
+      await settingsRef.set(legacySettingsSnap.data(), { merge:true });
+      migrated.settings = true;
+    }
+
+    const legacyProductsSnap = await db.collection('products').get();
+    let batch = db.batch(), count = 0;
+    for(const d of legacyProductsSnap.docs){
+      batch.set(productsCol.doc(d.id), d.data(), { merge:true });
+      migrated.products++; count++;
+      if(count >= 400){ await batch.commit(); batch = db.batch(); count = 0; }
+    }
+    if(count > 0) await batch.commit();
+
+    const legacyOrdersSnap = await db.collection('orders').get();
+    batch = db.batch(); count = 0;
+    for(const d of legacyOrdersSnap.docs){
+      batch.set(ordersCol.doc(d.id), d.data(), { merge:true });
+      migrated.orders++; count++;
+      if(count >= 400){ await batch.commit(); batch = db.batch(); count = 0; }
+    }
+    if(count > 0) await batch.commit();
+
+    status.textContent = 'Listo — ' + (migrated.settings ? 'configuración migrada, ' : '') +
+      migrated.products + ' producto(s) y ' + migrated.orders + ' pedido(s) copiados a esta tienda.';
+    toast('Migración completa', 'ok');
+  }catch(e){
+    console.error(e);
+    status.textContent = 'Ocurrió un error durante la migración. Revisá la consola o los permisos de Firestore.';
+    toast('No se pudo migrar', 'err');
+  }finally{
+    btn.disabled = false;
+  }
 }
 
 /* ---------- subida de logo (comprimido a base64, sin Firebase Storage) ---------- */
@@ -2884,6 +3284,7 @@ async function saveSettings(){
     websiteLabel:document.getElementById('sWebLabel').value.trim() || 'Sitio web',
     bingoUrl:document.getElementById('sBingoUrl').value.trim(),
     bingoLabel:document.getElementById('sBingoLabel').value.trim() || 'Bingo de Plantas',
+    storyVideoUrl:document.getElementById('sStoryVideoUrl').value.trim(),
     logoUrl: pendingLogoDataUrl !== null ? pendingLogoDataUrl : (settings.logoUrl||'')
   };
   try{
@@ -2897,12 +3298,69 @@ async function saveSettings(){
   }
 }
 
+/* ---------- selector de negocios (multi-tenant) ---------- */
+function goToTenant(slug){
+  location.href = location.pathname + '?tienda=' + encodeURIComponent(slug);
+}
+async function renderTenantSelector(msg){
+  document.body.classList.add('selector-mode');
+  const msgBox = document.getElementById('tenantSelectorMsg');
+  if(msg){ msgBox.textContent = msg; msgBox.style.display = 'inline-block'; }
+  else { msgBox.style.display = 'none'; }
+  const list = document.getElementById('tenantSelectorList');
+  list.innerHTML = '<div class="ts-loading">Cargando negocios…</div>';
+  try{
+    const q = await db.collection('tenants').where('activo','==', true).get();
+    if(q.empty){
+      list.innerHTML = '<div class="ts-empty">Todavía no hay negocios activos en la plataforma.</div>';
+      return;
+    }
+    list.innerHTML = q.docs.map(d=>{
+      const t = d.data();
+      const nombre = esc(t.nombre || d.id);
+      const logo = t.logoUrl
+        ? '<img src="' + t.logoUrl + '" alt="' + nombre + '">'
+        : '<span class="ts-fallback">' + nombre.charAt(0).toUpperCase() + '</span>';
+      const tag = t.tagline ? '<span class="ts-tag">' + esc(t.tagline) + '</span>' : '';
+      return '<button class="ts-card" onclick="goToTenant(\'' + d.id.replace(/'/g,"") + '\')">' +
+        '<span class="ts-logo">' + logo + '</span>' +
+        '<span class="ts-name">' + nombre + '</span>' + tag +
+        '</button>';
+    }).join('');
+  }catch(e){
+    console.error(e);
+    list.innerHTML = '<div class="ts-empty">No se pudieron cargar los negocios. Intentá de nuevo.</div>';
+  }
+}
+
 /* ---------- init ---------- */
-renderHeader(); renderChips(); updateCartUI(); renderExternalLinks();
-listenSettings();
-listenProducts();
+async function bootPlatform(){
+  renderHeader(); renderChips(); updateCartUI(); renderExternalLinks(); renderStoryVideo();
+  if(!TENANT_ID){
+    renderTenantSelector();
+    return;
+  }
+  try{
+    const snap = await tenantRef().get();
+    if(!snap.exists || snap.data().activo === false){
+      renderTenantSelector('No encontramos ese negocio o está desactivado por ahora.');
+      return;
+    }
+    TENANT_DATA = snap.data();
+    ADMIN_EMAILS = TENANT_DATA.adminEmails || [];
+    document.title = (TENANT_DATA.nombre || 'Tienda') + ' — PRO.DIGITAL';
+    bindTenantRefs();
+    refreshAdminSession();
+    listenSettings();
+    listenProducts();
+  }catch(e){
+    console.error(e);
+    renderTenantSelector('No se pudo cargar esta tienda. Revisá tu conexión e intentá de nuevo.');
+  }
+}
+bootPlatform();
 /* La primera vez que el administrador entre y presione "Guardar cambios" en
-   Configuraciones, se crea el documento settings/store en Firestore. */
+   Configuraciones, se crea el documento tenants/{slug}/settings/store en Firestore. */
 </script>
 </body>
 </html>
