@@ -1154,7 +1154,7 @@ body.selector-mode #storeView,body.selector-mode .wa-float,body.selector-mode .a
 
       <div class="hint" id="permDebugHint" style="max-width:760px;margin-bottom:6px"></div>
       <div style="max-width:760px;display:flex;gap:10px;justify-content:flex-end">
-        <button class="btn-ghost" style="width:auto;padding:12px 22px" onclick="loadSettingsForm()">Descartar</button>
+        <button class="btn-ghost" style="width:auto;padding:12px 22px" onclick="settingsFormDirty=false; loadSettingsForm()">Descartar</button>
         <button class="btn-dark" style="padding:12px 26px" onclick="saveSettings()">Guardar cambios</button>
       </div>
     </section>
@@ -1493,6 +1493,8 @@ function slugify(text){
 }
 
 let settingsReady = false, productsReady = false, storeFirstPaintDone = false;
+let settingsFormDirty = false; // true mientras hay cambios sin guardar en el formulario de Configuración
+function markSettingsFormDirty(){ settingsFormDirty = true; }
 function tryStoreFirstPaint(){
   if(storeFirstPaintDone || !settingsReady || !productsReady) return;
   storeFirstPaintDone = true;
@@ -1504,7 +1506,8 @@ function listenSettings(){
     settings = Object.assign({}, DEFAULT_SETTINGS, snap.exists ? snap.data() : {});
     settingsReady = true;
     renderHeader(); renderChips(); renderExternalLinks(); renderStoryVideo(); renderAIAssistant();
-    if(document.body.classList.contains('in-admin')) loadSettingsForm();
+    if(document.body.classList.contains('in-admin') && !settingsFormDirty) loadSettingsForm();
+    else if(document.body.classList.contains('in-admin')) showPermDebugHint();
     tryStoreFirstPaint();
   });
 }
@@ -1826,6 +1829,12 @@ function toggleBizSwitcher(ev){
   if(open) loadPlatformBizList();
   if(!open) toggleBizAddForm(false);
 }
+document.addEventListener('input', function(ev){
+  if(ev.target && ev.target.closest && ev.target.closest('#panel-settings')) markSettingsFormDirty();
+});
+document.addEventListener('change', function(ev){
+  if(ev.target && ev.target.closest && ev.target.closest('#panel-settings')) markSettingsFormDirty();
+});
 document.addEventListener('click', function(ev){
   const sw = document.getElementById('bizSwitcher');
   const btn = document.getElementById('bizSwitcherBtn');
@@ -3669,6 +3678,7 @@ async function saveSettings(){
   };
   try{
     await saveSettingsToDB(data);
+    settingsFormDirty = false;
     pendingLogoDataUrl = null;
     document.getElementById('sinpePreview').textContent = sinpe;
     toast('Configuración guardada', 'ok');
