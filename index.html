@@ -3724,8 +3724,55 @@ async function renderTenantSelector(msg){
 }
 
 /* ---------- init ---------- */
+/* ---------- siembra única de negocios de ejemplo ----------
+   Se dispara visitando la página con ?sembrar=1 en la URL (no requiere
+   abrir la consola del navegador). Crea 5 negocios de ejemplo si todavía
+   no existen, para poder editarlos después desde el panel administrador. */
+async function seedDemoTenants(){
+  const box = document.getElementById('tenantSelectorList');
+  const msgBox = document.getElementById('tenantSelectorMsg');
+  document.body.classList.add('selector-mode');
+  msgBox.style.display = 'inline-block';
+  msgBox.textContent = 'Creando negocios de ejemplo…';
+  box.innerHTML = '<div class="ts-loading">Un momento…</div>';
+  const negocios = [
+    { slug:'vivero-el-roble',      nombre:'Vivero El Roble',      tagline:'Editá esta info desde el panel administrador' },
+    { slug:'jardineria-dona-flor', nombre:'Jardinería Doña Flor', tagline:'Editá esta info desde el panel administrador' },
+    { slug:'plantas-y-macetas-cr', nombre:'Plantas & Macetas CR', tagline:'Editá esta info desde el panel administrador' },
+    { slug:'ecojardin',            nombre:'EcoJardín',            tagline:'Editá esta info desde el panel administrador' },
+    { slug:'rincon-verde',         nombre:'Rincón Verde',         tagline:'Editá esta info desde el panel administrador' }
+  ];
+  const creados = [];
+  try{
+    for(const n of negocios){
+      const ref = db.collection('tenants').doc(n.slug);
+      const existing = await ref.get();
+      if(existing.exists){ continue; }
+      await ref.set({
+        nombre: n.nombre,
+        tagline: n.tagline,
+        activo: true,
+        logoUrl: '',
+        adminEmails: ['admin@canaan.com']
+      });
+      creados.push(n.slug);
+    }
+    msgBox.textContent = creados.length
+      ? 'Listo: se crearon ' + creados.length + ' negocio(s) nuevo(s). Entrando a la pantalla de inicio…'
+      : 'Los 5 negocios de ejemplo ya existían, no se creó nada nuevo.';
+  }catch(e){
+    console.error(e);
+    msgBox.textContent = 'No se pudo sembrar: ' + (e && e.message ? e.message : 'error desconocido');
+  }
+  setTimeout(()=>{ location.href = location.pathname; }, 2200);
+}
+
 async function bootPlatform(){
   renderHeader(); renderChips(); updateCartUI(); renderExternalLinks(); renderStoryVideo();
+  if(new URLSearchParams(location.search).get('sembrar') === '1'){
+    seedDemoTenants();
+    return;
+  }
   if(!TENANT_ID){
     renderTenantSelector();
     return;
