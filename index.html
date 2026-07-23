@@ -200,6 +200,7 @@ img{max-width:100%}
 .pm-col{display:flex;flex-direction:column;gap:16px;min-width:0}
 .panel-card{background:#F9FAFB;border:1px solid var(--line);border-radius:14px;padding:18px}
 .panel-card h4{font-size:14.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.panel-card h4 svg{width:17px;height:17px;color:var(--green);flex-shrink:0}
 .panel-card .desc{font-size:12px;color:var(--muted);margin-top:-6px;margin-bottom:12px}
 .pm-save{margin-top:4px}
 @media(max-width:860px){ .pm-body{grid-template-columns:1fr} }
@@ -317,6 +318,9 @@ textarea.f-input{resize:vertical;min-height:70px}
 /* video / YouTube: formato vertical tipo historia (9:16), centrado y con fondo negro */
 .pv-media.is-story{aspect-ratio:9/16;max-width:380px;margin:0 auto;background:#111}
 .pv-media.is-story video{object-fit:cover}
+.pv-tiktok-link{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;cursor:pointer;background:linear-gradient(160deg,#111,#000)}
+.pv-tiktok-link svg{width:40px;height:40px;color:#fff}
+.pv-tiktok-link span{font-size:13.5px;font-weight:700}
 .pv-thumbs{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:2px}
 .pv-thumbs .th{width:64px;height:64px;flex-shrink:0;border-radius:10px;overflow:hidden;border:2px solid transparent;cursor:pointer;background:#F3F4F6}
 .pv-thumbs .th.active{border-color:var(--green)}
@@ -1191,7 +1195,7 @@ body.selector-mode #storeView,body.selector-mode .wa-float,body.selector-mode .a
           <div class="panel-card">
             <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Datos del producto</h4>
             <div class="f-group">
-              <label>Fotos del producto <span class="hint" style="display:inline">(tocá un recuadro para subir una foto; la primera es la portada)</span></label>
+              <label>Fotos del producto <span class="hint" style="display:inline">(tocá un recuadro para subir una foto; la primera es la portada — mínimo 1, máximo 7)</span></label>
               <div class="media-grid" id="pImgGrid"></div>
               <button type="button" class="btn-ghost" style="width:auto;padding:9px 16px;margin-top:8px" onclick="addImageField()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Agregar recuadro de foto
@@ -1217,6 +1221,11 @@ body.selector-mode #storeView,body.selector-mode .wa-float,body.selector-mode .a
               <label>Enlace de YouTube</label>
               <input class="f-input" id="pVideoLink" placeholder="https://youtube.com/watch?v=...">
               <p class="hint">Se agrega como una miniatura más en la galería, reproducible ahí mismo.</p>
+            </div>
+            <div class="f-group">
+              <label>Reel de TikTok (publicidad adicional)</label>
+              <input class="f-input" id="pTiktokUrl" placeholder="https://www.tiktok.com/@usuario/video/...">
+              <p class="hint">Se agrega como una miniatura más en la galería del producto.</p>
             </div>
           </div>
         </div>
@@ -1617,6 +1626,19 @@ function youtubeEmbedUrl(url){
   if(!url) return null;
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
   return m ? ('https://www.youtube.com/embed/' + m[1]) : null;
+}
+
+/* Convierte un enlace de reel de TikTok (formato .../@usuario/video/ID) a su URL de embed oficial.
+   Los enlaces cortos (vm.tiktok.com, vt.tiktok.com) no se pueden resolver desde el navegador,
+   así que en ese caso se ofrece un botón que abre el reel directamente en TikTok. */
+function tiktokVideoId(url){
+  if(!url) return null;
+  const m = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+  return m ? m[1] : null;
+}
+function tiktokEmbedUrl(url){
+  const id = tiktokVideoId(url);
+  return id ? ('https://www.tiktok.com/embed/v2/' + id) : null;
 }
 
 /* ---------- video flotante tipo historia ---------- */
@@ -2161,11 +2183,12 @@ function openProductView(id){
   if(p.videoUrl) media.push({type:'video', url:p.videoUrl});
   const ytEmbed = youtubeEmbedUrl(p.videoLink);
   if(ytEmbed) media.push({type:'youtube', url:ytEmbed});
+  if(p.tiktokUrl) media.push({type:'tiktok', url:p.tiktokUrl});
   if(!media.length) media.push({type:'icon', url:p.icon});
   pvShowMedia(media, 0);
   document.getElementById('pvThumbs').innerHTML = media.map((m,i) => {
     if(m.type==='image') return '<div class="th' + (i===0?' active':'') + '" data-i="' + i + '" onclick="pvSelectThumb(' + i + ')"><img src="' + m.url + '"></div>';
-    if(m.type==='video'||m.type==='youtube') return '<div class="th vid' + (i===0?' active':'') + '" data-i="' + i + '" onclick="pvSelectThumb(' + i + ')"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>';
+    if(m.type==='video'||m.type==='youtube'||m.type==='tiktok') return '<div class="th vid' + (i===0?' active':'') + '" data-i="' + i + '" onclick="pvSelectThumb(' + i + ')"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>';
     return '<div class="th' + (i===0?' active':'') + '" data-i="' + i + '" onclick="pvSelectThumb(' + i + ')" style="display:flex;align-items:center;justify-content:center;background:var(--green-soft)">' + svgIcon(m.url,30) + '</div>';
   }).join('');
   pvCurrentMedia = media;
@@ -2276,13 +2299,23 @@ function pvShowMedia(media, i){
   const m = media[i];
   pvMediaIndex = i;
   const box = document.getElementById('pvMedia');
-  /* el video y el YouTube se muestran en formato vertical tipo historia (9:16) */
-  box.classList.toggle('is-story', m.type==='video' || m.type==='youtube');
+  /* el video, YouTube y TikTok se muestran en formato vertical tipo historia (9:16) */
+  box.classList.toggle('is-story', m.type==='video' || m.type==='youtube' || m.type==='tiktok');
   box.classList.toggle('zoomable', m.type==='image');
   box.onclick = m.type==='image' ? function(){ openLightbox(pvMediaIndex); } : null;
   if(m.type==='image') box.innerHTML = '<img src="' + m.url + '" alt="">';
   else if(m.type==='video') box.innerHTML = '<video src="' + esc(m.url) + '" controls playsinline muted autoplay loop></video>';
   else if(m.type==='youtube') box.innerHTML = '<iframe src="' + esc(m.url) + '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+  else if(m.type==='tiktok'){
+    const embed = tiktokEmbedUrl(m.url);
+    if(embed){
+      box.innerHTML = '<iframe src="' + esc(embed) + '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+    } else {
+      box.innerHTML = '<div class="pv-tiktok-link"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span>Ver reel en TikTok</span></div>';
+      const linkEl = box.querySelector('.pv-tiktok-link');
+      if(linkEl) linkEl.addEventListener('click', () => openBusiness(m.url));
+    }
+  }
   else box.innerHTML = svgIcon(m.url, 120);
 }
 /* ---------- visor de fotos a pantalla completa ---------- */
@@ -3125,7 +3158,11 @@ function onImageFileChosen(input){
   }).catch(()=> toast('No se pudo procesar esa foto', 'err'));
   input.value = '';
 }
-function addImageField(){ pmImages.push(''); renderImageGrid(); }
+function addImageField(){
+  if(pmImages.length >= 7){ toast('Máximo 7 fotos por producto', 'err'); return; }
+  pmImages.push('');
+  renderImageGrid();
+}
 function removeImageField(i){ pmImages.splice(i,1); if(!pmImages.length) pmImages.push(''); renderImageGrid(); }
 
 /* ---------- fotos del negocio para el carrusel del landing (subidas como archivo, comprimidas a base64) ---------- */
@@ -3306,7 +3343,8 @@ function openProductModal(id){
     document.getElementById('pActive').checked = p.active !== false;
     document.getElementById('pVideoUrl').value = p.videoUrl||'';
     document.getElementById('pVideoLink').value = p.videoLink||'';
-    pmImages = (p.images && p.images.length) ? p.images.slice() : ['','',''];
+    document.getElementById('pTiktokUrl').value = p.tiktokUrl||'';
+    pmImages = (p.images && p.images.length) ? p.images.slice() : [''];
     document.getElementById('pHasVariants').checked = !!p.hasVariants;
     document.getElementById('pVariantGroup').value = p.variantGroupName || 'Tamaños';
     pmVariants = (p.variants && p.variants.length) ? p.variants.map(v=>Object.assign({},v)) : [];
@@ -3316,11 +3354,11 @@ function openProductModal(id){
     pmReviews = (p.reviews && p.reviews.length) ? p.reviews.map(r=>Object.assign({},r)) : [];
   } else {
     document.getElementById('pmTitle').textContent = 'Crear producto';
-    ['pId','pName','pDesc','pPrice','pStock','pVideoUrl','pVideoLink'].forEach(i=>document.getElementById(i).value='');
+    ['pId','pName','pDesc','pPrice','pStock','pVideoUrl','pVideoLink','pTiktokUrl'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('pIcon').value = 'leaf';
     document.getElementById('pUnlimited').checked = false;
     document.getElementById('pActive').checked = true;
-    pmImages = ['','',''];
+    pmImages = [''];
     document.getElementById('pHasVariants').checked = false;
     document.getElementById('pVariantGroup').value = 'Tamaños';
     pmVariants = [];
@@ -3343,7 +3381,7 @@ async function saveProduct(){
   const hasVariants = document.getElementById('pHasVariants').checked;
   const images = pmImages.map(u=>u.trim()).filter(Boolean);
   if(!name){ toast('El nombre es obligatorio', 'err'); return; }
-  if(images.length < 3){ toast('Agregá al menos 3 fotos del producto', 'err'); return; }
+  if(images.length < 1){ toast('Agregá al menos 1 foto del producto', 'err'); return; }
 
   let price, stock, unlimited, variants = [], variantGroupName = '';
   if(hasVariants){
@@ -3384,6 +3422,7 @@ async function saveProduct(){
     images,
     videoUrl:document.getElementById('pVideoUrl').value.trim(),
     videoLink:document.getElementById('pVideoLink').value.trim(),
+    tiktokUrl:document.getElementById('pTiktokUrl').value.trim(),
     hasVariants, variantGroupName, variants,
     compareAtPrice, soldCount, dealEndsAt, reviews
   };
