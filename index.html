@@ -679,24 +679,24 @@ body.in-admin .ai-float,body.in-admin .ai-panel{display:none}
 }
 body.selector-mode .tenant-selector{display:block}
 body.selector-mode #storeView,body.selector-mode .wa-float,body.selector-mode .ai-float,body.selector-mode .ai-panel{display:none}
-.ts-inner{max-width:1080px;margin:0 auto;color:#fff;position:relative}
+.ts-inner{max-width:1180px;margin:0 auto;color:#fff;position:relative}
 .ts-leaf{position:absolute;top:-40px;right:-30px;width:260px;height:260px;opacity:.10;pointer-events:none}
 .ts-brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.4px;opacity:.9;margin-bottom:56px;font-size:14px}
 .ts-brand-badge{width:32px;height:32px;border-radius:9px;background:var(--yellow);color:#173B25;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900}
 .ts-title{font-family:var(--font-display);font-weight:500;font-size:clamp(32px,5.6vw,54px);line-height:1.08;letter-spacing:-.01em;max-width:620px;margin-bottom:44px}
 .ts-title em{font-style:italic;font-weight:600;color:var(--yellow)}
 .ts-msg{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:10px 16px;font-size:13px;margin:0 0 26px;display:inline-block}
-.ts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px}
-.ts-card{background:#fff;border-radius:20px;padding:26px 20px;display:flex;flex-direction:column;align-items:flex-start;gap:14px;box-shadow:0 14px 34px rgba(0,0,0,.22);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s;text-align:left}
+.ts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px}
+.ts-card{background:#fff;border-radius:22px;padding:30px 26px;display:flex;flex-direction:column;align-items:flex-start;gap:16px;box-shadow:0 14px 34px rgba(0,0,0,.22);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s;text-align:left}
 .ts-card:hover{transform:translateY(-5px);box-shadow:0 20px 44px rgba(0,0,0,.3)}
-.ts-logo{width:52px;height:52px;border-radius:14px;overflow:hidden;background:var(--green-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ts-logo img{width:100%;height:100%;object-fit:cover}
-.ts-fallback{font-family:var(--font-display);font-size:21px;font-weight:600;color:var(--green-dark)}
-.ts-name{font-weight:700;font-size:15.5px;color:var(--ink);line-height:1.25}
-.ts-tag{font-size:12.5px;color:var(--muted);line-height:1.35}
-.ts-arrow{margin-top:auto;width:30px;height:30px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;transition:background .2s}
+.ts-logo{width:76px;height:76px;border-radius:18px;overflow:hidden;background:var(--green-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ts-logo img{width:100%;height:100%;object-fit:contain;padding:6px;background:#fff}
+.ts-fallback{font-family:var(--font-display);font-size:30px;font-weight:600;color:var(--green-dark)}
+.ts-name{font-weight:700;font-size:19px;color:var(--ink);line-height:1.25}
+.ts-tag{font-size:14px;color:var(--muted);line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ts-arrow{margin-top:auto;width:34px;height:34px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;transition:background .2s}
 .ts-card:hover .ts-arrow{background:var(--yellow)}
-.ts-arrow svg{width:14px;height:14px;color:var(--green-dark)}
+.ts-arrow svg{width:15px;height:15px;color:var(--green-dark)}
 .ts-loading,.ts-empty{grid-column:1/-1;color:rgba(255,255,255,.75);font-size:14px;padding:30px 0}
 .back-to-selector{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--muted);padding:4px 0}
 .back-to-selector svg{width:14px;height:14px}
@@ -3673,6 +3673,14 @@ async function saveSettings(){
   };
   try{
     await saveSettingsToDB(data);
+    // Mantiene sincronizados el nombre, la descripción y el logo de esta
+    // tienda con su tarjeta en la pantalla de inicio (tenants/{slug}),
+    // así lo que se edita acá aparece automáticamente en el landing.
+    await tenantRef().set({
+      nombre: data.storeName,
+      tagline: data.tagline,
+      logoUrl: data.logoUrl
+    }, { merge:true });
     settingsFormDirty = false;
     pendingLogoDataUrl = null;
     document.getElementById('sinpePreview').textContent = sinpe;
