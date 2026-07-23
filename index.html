@@ -679,25 +679,34 @@ body.in-admin .ai-float,body.in-admin .ai-panel{display:none}
 }
 body.selector-mode .tenant-selector{display:block}
 body.selector-mode #storeView,body.selector-mode .wa-float,body.selector-mode .ai-float,body.selector-mode .ai-panel{display:none}
-.ts-inner{max-width:1180px;margin:0 auto;color:#fff;position:relative}
+.ts-inner{max-width:1180px;margin:0 auto;color:#fff;position:relative;display:flex;flex-direction:column;min-height:calc(100vh - 154px)}
 .ts-leaf{position:absolute;top:-40px;right:-30px;width:260px;height:260px;opacity:.10;pointer-events:none}
-.ts-brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.4px;opacity:.9;margin-bottom:56px;font-size:14px}
-.ts-brand-badge{width:32px;height:32px;border-radius:9px;background:var(--yellow);color:#173B25;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900}
 .ts-title{font-family:var(--font-display);font-weight:500;font-size:clamp(32px,5.6vw,54px);line-height:1.08;letter-spacing:-.01em;max-width:620px;margin-bottom:44px}
 .ts-title em{font-style:italic;font-weight:600;color:var(--yellow)}
 .ts-msg{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:10px 16px;font-size:13px;margin:0 0 26px;display:inline-block}
-.ts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px}
-.ts-card{background:#fff;border-radius:22px;padding:30px 26px;display:flex;flex-direction:column;align-items:flex-start;gap:16px;box-shadow:0 14px 34px rgba(0,0,0,.22);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s;text-align:left}
+.ts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:26px;flex:1}
+.ts-card{background:#fff;border-radius:22px;padding:0;display:flex;flex-direction:column;align-items:stretch;box-shadow:0 14px 34px rgba(0,0,0,.22);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s;text-align:left;overflow:hidden}
 .ts-card:hover{transform:translateY(-5px);box-shadow:0 20px 44px rgba(0,0,0,.3)}
-.ts-logo{width:76px;height:76px;border-radius:18px;overflow:hidden;background:var(--green-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ts-logo img{width:100%;height:100%;object-fit:contain;padding:6px;background:#fff}
-.ts-fallback{font-family:var(--font-display);font-size:30px;font-weight:600;color:var(--green-dark)}
+.ts-media{position:relative;width:100%;aspect-ratio:4/3;background:var(--green-soft);overflow:hidden}
+.ts-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1s ease}
+.ts-media img.active{opacity:1}
+.ts-fallback-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--green-soft)}
+.ts-fallback{font-family:var(--font-display);font-size:44px;font-weight:600;color:var(--green-dark)}
+.ts-dots{position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:5px;z-index:2}
+.ts-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55);transition:.25s}
+.ts-dot.active{background:#fff;width:16px;border-radius:3px}
+.ts-body{padding:18px 22px 22px;display:flex;flex-direction:column;gap:6px;flex:1}
+.ts-name-row{display:flex;align-items:center;gap:10px}
+.ts-logo{width:34px;height:34px;border-radius:9px;overflow:hidden;background:var(--green-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ts-logo img{width:100%;height:100%;object-fit:contain;padding:3px;background:#fff}
+.ts-logo .ts-fallback{font-size:15px}
 .ts-name{font-weight:700;font-size:19px;color:var(--ink);line-height:1.25}
-.ts-tag{font-size:14px;color:var(--muted);line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.ts-arrow{margin-top:auto;width:34px;height:34px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;transition:background .2s}
+.ts-tag{font-size:14px;color:var(--muted);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ts-arrow{margin-top:8px;width:34px;height:34px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;transition:background .2s}
 .ts-card:hover .ts-arrow{background:var(--yellow)}
 .ts-arrow svg{width:15px;height:15px;color:var(--green-dark)}
 .ts-loading,.ts-empty{grid-column:1/-1;color:rgba(255,255,255,.75);font-size:14px;padding:30px 0}
+.ts-footer{margin-top:56px;padding-top:22px;border-top:1px solid rgba(255,255,255,.16);text-align:center;font-size:12.5px;color:rgba(255,255,255,.6)}
 .back-to-selector{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--muted);padding:4px 0}
 .back-to-selector svg{width:14px;height:14px}
 .biz-sec-label{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:10px 14px 4px}
@@ -716,15 +725,12 @@ body.selector-mode #storeView,body.selector-mode .wa-float,body.selector-mode .a
       <path d="M100 10C60 40 30 90 40 140c5 24 26 44 60 44 44 0 78-38 78-90 0-38-30-70-78-84z" stroke="#fff" stroke-width="1.4"/>
       <path d="M100 26v150M100 70c-22-6-38 2-48 18M100 110c26-4 42 4 52 20" stroke="#fff" stroke-width="1.2"/>
     </svg>
-    <div class="ts-brand">
-      <span class="ts-brand-badge">PD</span>
-      <span>PRO.DIGITAL</span>
-    </div>
     <h1 class="ts-title">Elegí dónde<br><em>comprar</em> hoy.</h1>
     <div class="ts-msg" id="tenantSelectorMsg" style="display:none"></div>
     <div class="ts-grid" id="tenantSelectorList">
       <div class="ts-loading">Cargando negocios…</div>
     </div>
+    <footer class="ts-footer">© <span id="tsYear"></span> PRO.DIGITAL — Todos los derechos reservados.</footer>
   </div>
 </div>
 
@@ -1051,11 +1057,21 @@ body.selector-mode #storeView,body.selector-mode .wa-float,body.selector-mode .a
         <div class="logo-upload-row">
           <span class="logo-preview" id="logoPreview"></span>
           <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="onLogoFileChosen(this)">
+          <input type="file" id="bizImgFileInput" accept="image/*" style="display:none" onchange="onBizImageFileChosen(this)">
           <button type="button" class="btn-ghost" style="width:auto;padding:10px 18px" onclick="document.getElementById('logoFileInput').click()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4m0 0 4 4m-4-4-4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>Subir logo
           </button>
           <button type="button" class="btn-ghost" style="width:auto;padding:10px 18px;color:var(--danger)" onclick="removeLogo()">Quitar logo</button>
         </div>
+      </div>
+
+      <div class="settings-card">
+        <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="3"/><circle cx="8.5" cy="9" r="1.5"/><path d="m3 15 4.5-4.5a2 2 0 0 1 2.8 0L15 15M13 13l1.5-1.5a2 2 0 0 1 2.8 0L21 15"/></svg>Fotos del negocio (portada del inicio)</h4>
+        <div class="desc">Estas fotos aparecen en tu tarjeta de la pantalla principal, donde los clientes eligen a qué negocio entrar, y van pasando automáticamente en carrusel. Subí al menos 3 fotos en buena resolución; tocá un recuadro para subir o cambiar una foto.</div>
+        <div class="media-grid" id="bizImgGrid"></div>
+        <button type="button" class="btn-ghost" style="width:auto;padding:9px 16px;margin-top:8px" onclick="addBizImageField()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Agregar recuadro de foto
+        </button>
       </div>
 
       <div class="settings-card">
@@ -1411,6 +1427,7 @@ const DEFAULT_SETTINGS = {
   storyVideoUrl:'',
   otherBusinesses:[],
   logoUrl:'',
+  landingImages:[],
   iva:13,
   aiEnabled:false,
   aiApiKey:'',
@@ -3111,6 +3128,49 @@ function onImageFileChosen(input){
 function addImageField(){ pmImages.push(''); renderImageGrid(); }
 function removeImageField(i){ pmImages.splice(i,1); if(!pmImages.length) pmImages.push(''); renderImageGrid(); }
 
+/* ---------- fotos del negocio para el carrusel del landing (subidas como archivo, comprimidas a base64) ---------- */
+let bizImages = ['','',''];
+let bizImgSlot = null;
+const BIZ_IMG_MAX_TOTAL_BYTES = 900000; // deja margen bajo el límite de 1MB por documento de Firestore
+function renderBizImageGrid(){
+  const grid = document.getElementById('bizImgGrid');
+  if(!grid) return;
+  grid.innerHTML = bizImages.map((url,i) => {
+    const preview = url ?
+      '<img src="' + url + '">' :
+      '<div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0 4 4m-4-4-4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg><span>Subir foto</span></div>';
+    return '<div class="media-item' + (url?' filled':' upload') + '" onclick="triggerBizImageUpload(' + i + ')" title="' + (url?'Cambiar foto':'Subir foto') + '">' +
+      preview +
+      (url ? '<button type="button" class="rm-btn" onclick="event.stopPropagation();removeBizImageField(' + i + ')" title="Quitar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' : '') +
+    '</div>';
+  }).join('');
+}
+function triggerBizImageUpload(i){ bizImgSlot = i; document.getElementById('bizImgFileInput').click(); }
+function onBizImageFileChosen(input){
+  const file = input.files && input.files[0];
+  const slot = bizImgSlot;
+  if(!file || slot===null){ input.value=''; return; }
+  compressImageFile(file, 1600, 0.82).then(dataUrl => {
+    const otherBytes = bizImages.reduce((s,u,i)=> s + (i===slot ? 0 : (u ? u.length : 0)), 0);
+    if(otherBytes + dataUrl.length > BIZ_IMG_MAX_TOTAL_BYTES){
+      toast('Esa foto es muy pesada junto con las demás. Quitá alguna foto o subí una más liviana', 'err');
+      return;
+    }
+    bizImages[slot] = dataUrl;
+    renderBizImageGrid();
+    settingsFormDirty = true;
+    toast('Foto cargada, recordá presionar "Guardar cambios"', 'ok');
+  }).catch(()=> toast('No se pudo procesar esa foto', 'err'));
+  input.value = '';
+}
+function addBizImageField(){ bizImages.push(''); renderBizImageGrid(); }
+function removeBizImageField(i){
+  bizImages.splice(i,1);
+  while(bizImages.length < 3) bizImages.push('');
+  renderBizImageGrid();
+  settingsFormDirty = true;
+}
+
 /* ---------- variantes (opciones con precio y stock propios, ej. tamaños) ---------- */
 let pmVariants = [];
 function toggleVariantsUI(){
@@ -3509,6 +3569,9 @@ function loadSettingsForm(){
   document.getElementById('sinpePreview').textContent = settings.sinpe;
   pendingLogoDataUrl = null;
   document.getElementById('logoPreview').innerHTML = settings.logoUrl ? '<img src="' + esc(settings.logoUrl) + '" alt="Logo">' : logoSVG;
+  bizImages = (settings.landingImages && settings.landingImages.length) ? settings.landingImages.slice() : [];
+  while(bizImages.length < 3) bizImages.push('');
+  renderBizImageGrid();
   checkLegacyMigration();
   refreshStorePasswordStatus();
   showPermDebugHint();
@@ -3669,17 +3732,19 @@ async function saveSettings(){
     aiApiKey: document.getElementById('sAiKey').value.trim(),
     aiAssistantName: document.getElementById('sAiName').value.trim() || 'Cana',
     aiWelcomeMsg: document.getElementById('sAiWelcome').value.trim() || DEFAULT_SETTINGS.aiWelcomeMsg,
-    logoUrl: pendingLogoDataUrl !== null ? pendingLogoDataUrl : (settings.logoUrl||'')
+    logoUrl: pendingLogoDataUrl !== null ? pendingLogoDataUrl : (settings.logoUrl||''),
+    landingImages: bizImages.map(u=>u.trim()).filter(Boolean)
   };
   try{
     await saveSettingsToDB(data);
-    // Mantiene sincronizados el nombre, la descripción y el logo de esta
-    // tienda con su tarjeta en la pantalla de inicio (tenants/{slug}),
+    // Mantiene sincronizados el nombre, la descripción, el logo y las fotos
+    // de esta tienda con su tarjeta en la pantalla de inicio (tenants/{slug}),
     // así lo que se edita acá aparece automáticamente en el landing.
     await tenantRef().set({
       nombre: data.storeName,
       tagline: data.tagline,
-      logoUrl: data.logoUrl
+      logoUrl: data.logoUrl,
+      landingImages: data.landingImages
     }, { merge:true });
     settingsFormDirty = false;
     pendingLogoDataUrl = null;
@@ -3699,13 +3764,46 @@ async function saveSettings(){
 function goToTenant(slug){
   location.href = location.pathname + '?tienda=' + encodeURIComponent(slug);
 }
+function tenantCardMedia(images, nombre){
+  if(images && images.length){
+    const imgs = images.map((url,i)=> '<img src="' + url + '" alt="' + nombre + '"' + (i===0?' class="active"':'') + '>').join('');
+    const dots = images.length > 1
+      ? '<div class="ts-dots">' + images.map((_,i)=> '<span class="ts-dot' + (i===0?' active':'') + '"></span>').join('') + '</div>'
+      : '';
+    return imgs + dots;
+  }
+  return '<span class="ts-fallback-wrap"><span class="ts-fallback">' + nombre.charAt(0).toUpperCase() + '</span></span>';
+}
+let tsCarouselTimer = null;
+function startTenantCarousel(){
+  if(tsCarouselTimer) clearInterval(tsCarouselTimer);
+  tsCarouselTimer = setInterval(()=>{
+    document.querySelectorAll('.ts-media').forEach(media=>{
+      const imgs = media.querySelectorAll('img');
+      if(imgs.length < 2) return;
+      let idx = 0;
+      imgs.forEach((img,i)=>{ if(img.classList.contains('active')) idx = i; });
+      const next = (idx + 1) % imgs.length;
+      imgs[idx].classList.remove('active');
+      imgs[next].classList.add('active');
+      const dots = media.querySelectorAll('.ts-dot');
+      if(dots.length){
+        dots[idx].classList.remove('active');
+        dots[next].classList.add('active');
+      }
+    });
+  }, 3200);
+}
 async function renderTenantSelector(msg){
   document.body.classList.add('selector-mode');
+  const yearEl = document.getElementById('tsYear');
+  if(yearEl) yearEl.textContent = new Date().getFullYear();
   const msgBox = document.getElementById('tenantSelectorMsg');
   if(msg){ msgBox.textContent = msg; msgBox.style.display = 'inline-block'; }
   else { msgBox.style.display = 'none'; }
   const list = document.getElementById('tenantSelectorList');
   list.innerHTML = '<div class="ts-loading">Cargando negocios…</div>';
+  if(tsCarouselTimer){ clearInterval(tsCarouselTimer); tsCarouselTimer = null; }
   try{
     const q = await db.collection('tenants').where('activo','==', true).get();
     if(q.empty){
@@ -3719,12 +3817,17 @@ async function renderTenantSelector(msg){
         ? '<img src="' + t.logoUrl + '" alt="' + nombre + '">'
         : '<span class="ts-fallback">' + nombre.charAt(0).toUpperCase() + '</span>';
       const tag = t.tagline ? '<span class="ts-tag">' + esc(t.tagline) + '</span>' : '';
+      const media = tenantCardMedia(t.landingImages, nombre);
       return '<button class="ts-card" onclick="goToTenant(\'' + d.id.replace(/'/g,"") + '\')">' +
-        '<span class="ts-logo">' + logo + '</span>' +
-        '<span class="ts-name">' + nombre + '</span>' + tag +
-        '<span class="ts-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>' +
+        '<span class="ts-media">' + media + '</span>' +
+        '<span class="ts-body">' +
+          '<span class="ts-name-row"><span class="ts-logo">' + logo + '</span><span class="ts-name">' + nombre + '</span></span>' +
+          tag +
+          '<span class="ts-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>' +
+        '</span>' +
         '</button>';
     }).join('');
+    startTenantCarousel();
   }catch(e){
     console.error(e);
     list.innerHTML = '<div class="ts-empty">No se pudieron cargar los negocios. Intentá de nuevo.</div>';
@@ -3761,6 +3864,7 @@ async function seedDemoTenants(){
         tagline: n.tagline,
         activo: true,
         logoUrl: '',
+        landingImages: [],
         adminEmails: ['admin@canaan.com']
       });
       creados.push(n.slug);
